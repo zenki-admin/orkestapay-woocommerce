@@ -1,0 +1,173 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Orkesta Payments Orchestration for WooCommerce\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-29 01:58+0000\n"
+"PO-Revision-Date: 2023-12-06 00:42+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish (Spain)\n"
+"Language: es_ES\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.6; wp-6.1.1\n"
+"X-Domain: orkestapay"
+
+#: includes/class-wc-orkestapay.php:302
+msgid "A transaction error occurred. Your credit card has not been charged."
+msgstr ""
+"Se produjo un error en la transacción. Su tarjeta de crédito no ha sido "
+"cargada."
+
+#: includes/class-wc-orkestapay.php:104
+msgid "Access Key"
+msgstr "Llave de acceso"
+
+#: includes/class-wc-orkestapay.php:375
+msgid "An error occurred getting access token."
+msgstr "Se produjo un error al obtener el token de acceso."
+
+#: templates/payment.php:33
+msgid "Card Code (CVC)"
+msgstr "Código (CVV)"
+
+#: templates/payment.php:20
+msgid "Card Number"
+msgstr "Número de tarjeta"
+
+#: includes/class-wc-orkestapay.php:73
+msgid "Check the box to enable Orkesta as a payment method."
+msgstr "Marca la casilla para habilitar Orkesta como método de pago."
+
+#: includes/class-wc-orkestapay.php:80
+msgid "Check the box to make test payments."
+msgstr "Marca la casilla para realizar pagos de prueba."
+
+#: templates/admin.php:9
+msgid "click here"
+msgstr "clic quí"
+
+#: includes/class-wc-orkestapay.php:199
+msgid "Configuration completed successfully."
+msgstr "La configuración se completó correctamente."
+
+#: includes/class-wc-orkestapay.php:85
+msgid "Credit Card"
+msgstr "Tarjeta de crédito"
+
+#: includes/class-wc-orkestapay.php:124
+msgid "Device Key"
+msgstr "Clave del dispositivo"
+
+#: includes/class-wc-orkestapay.php:70 includes/class-wc-orkestapay.php:77
+msgid "Enable"
+msgstr "Habilitar"
+
+#: includes/class-wc-orkestapay.php:69
+msgid "Enable Orkesta"
+msgstr "Habiltar Orkesta"
+
+#: includes/class-wc-orkestapay.php:76
+msgid "Enable test mode"
+msgstr "Habilitar modo de pruebas"
+
+#: templates/payment.php:27
+msgid "Expiry Date"
+msgstr "Fecha de expiración"
+
+#: templates/admin.php:9
+msgid "For more information about plugin configuration "
+msgstr "Para obtener más información sobre la configuración del plugin"
+
+#: templates/payment.php:14 templates/payment.php:16
+msgid "Holder Name"
+msgstr "Nombre del tarjetahabiente"
+
+#. URI of the plugin
+msgid "https://wordpress.org/plugins/orkestapay/"
+msgstr ""
+
+#: includes/class-wc-orkestapay.php:95
+msgid "Merchant ID"
+msgstr "ID del comercio"
+
+#. Description of the plugin
+#: includes/class-wc-orkestapay.php:28
+msgid ""
+"Orchestrate multiple payment gateways for a frictionless, reliable, and "
+"secure checkout experience."
+msgstr ""
+"Organice múltiples pasarelas de pago para una experiencia de pago segura, "
+"confiable y sin fricciones."
+
+#: includes/class-wc-orkestapay.php:27
+msgid "Orkesta"
+msgstr "Orkesta"
+
+#: includes/class-wc-orkestapay.php:152
+msgid "Orkesta needs WooCommerce plugin is installed and activated to work."
+msgstr ""
+"Orkesta necesita que el plugin de WooCommerce esté instalado y activado para "
+"funcionar."
+
+#. Name of the plugin
+msgid "Orkesta Payments Orchestration for WooCommerce"
+msgstr "Orkesta Payments Orchestration for WooCommerce"
+
+#: includes/class-wc-orkestapay.php:92
+msgid "Pay with your credit card via Orkesta."
+msgstr "Paga con tu tarjeta de crédito a través de Orkesta."
+
+#: includes/class-wc-orkestapay.php:277
+msgid "Payment Failed."
+msgstr "Pago fallido."
+
+#: includes/class-wc-orkestapay.php:91
+msgid "Payment method description that the customer will see on your website."
+msgstr "Descripción del método de pago que el cliente verá en su sitio web."
+
+#: includes/class-wc-orkestapay.php:86
+msgid "Payment method title that the customer will see on your checkout."
+msgstr "Título del método de pago que el cliente verá en el checkout."
+
+#: includes/class-wc-orkestapay.php:195
+msgid "Provided credentials are invalid."
+msgstr "Las credenciales proporcionadas no son válidas."
+
+#: includes/class-wc-orkestapay.php:114
+msgid "Secret Key"
+msgstr "Llave secreta"
+
+#: orkestapay.php:49
+msgid "Settings"
+msgstr "Ajustes"
+
+#: includes/class-wc-orkestapay.php:49
+msgid ""
+"TEST MODE ENABLED. In test mode, you can use the card number "
+"4242424242424242 with any CVC and a valid expiration date."
+msgstr ""
+"MODO DE PRUEBA HABILITADO. En modo de prueba, puedes utilizar el número de "
+"tarjeta 4242424242424242 con cualquier CVC y una fecha de vencimiento válida."
+
+#: includes/class-wc-orkestapay-api.php:191
+msgid "There was a problem connecting to the Orkesta API endpoint."
+msgstr "Hubo un problema al conectarse al API de Orkesta."
+
+#: includes/class-wc-orkestapay-api.php:110
+msgid "There was a problem getting the access token."
+msgstr "Hubo un problema al obtener el token de acceso."
+
+#: includes/class-wc-orkestapay.php:83
+msgid "Title"
+msgstr "Título"
+
+#: templates/admin.php:5
+msgid "Unlocking Payment Ecosystem"
+msgstr "Unlocking Payment Ecosystem"
+
+#. Author of the plugin
+msgid "zenkipay"
+msgstr ""
