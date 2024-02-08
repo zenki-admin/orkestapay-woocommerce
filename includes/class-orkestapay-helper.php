@@ -4,10 +4,10 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * WC_Orkesta_Helper class.
+ * OrkestaPay_Helper class.
  *
  */
-class WC_Orkesta_Helper
+class OrkestaPay_Helper
 {
     const PAYMENT_METHOD_CARD = 'CARD';
     const PAYMENT_METHOD_ALIAS = 'Default card';

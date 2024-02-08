@@ -1,7 +1,7 @@
 <?php
 
 /**
- * WC_Orkesta_Gateway class.
+ * OrkestaPay_Gateway class.
  *
  * @extends WC_Payment_Gateway
  */
@@ -10,7 +10,11 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
-class WC_Orkesta_Gateway extends WC_Payment_Gateway
+if (!class_exists('Svix')) {
+    require_once dirname(__DIR__) . '/lib/svix/init.php';
+}
+
+class OrkestaPay_Gateway extends WC_Payment_Gateway
 {
     const PAYMENT_ACTION_REQUIRED = 'PAYMENT_ACTION_REQUIRED';
 
@@ -19,6 +23,7 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
     protected $client_id;
     protected $client_secret;
     protected $device_key;
+    protected $whsec;
     protected $plugin_version = '0.1.0';
 
     public function __construct()
@@ -41,9 +46,10 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
         $this->client_id = $this->settings['client_id'];
         $this->client_secret = $this->settings['client_secret'];
         $this->device_key = $this->settings['device_key'];
+        $this->whsec = $this->settings['whsec'];
 
-        WC_Orkesta_API::set_client_id($this->client_id);
-        WC_Orkesta_API::set_client_secret($this->client_secret);
+        OrkestaPay_API::set_client_id($this->client_id);
+        OrkestaPay_API::set_client_secret($this->client_secret);
 
         if ($this->test_mode) {
             $this->description .= __('TEST MODE ENABLED. In test mode, you can use the card number 4242424242424242 with any CVC and a valid expiration date.', 'orkestapay');
@@ -52,11 +58,67 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
         add_action('wp_enqueue_scripts', [$this, 'payment_scripts']);
         add_action('admin_notices', [$this, 'admin_notices']);
         add_action('woocommerce_api_orkesta_get_access_token', [$this, 'orkesta_get_access_token']);
+        add_action('woocommerce_api_' . strtolower(get_class($this)), [$this, 'webhookHandler']);
 
         // This action hook saves the settings
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 
-        wp_enqueue_style('orkestapay_style', plugins_url('assets/css/styles.css', ORKESTAPAY_WC_PLUGIN_FILEy), [], $this->plugin_version);
+        wp_enqueue_style('orkestapay_style', plugins_url('assets/css/styles.css', ORKESTAPAY_WC_PLUGIN_FILE), [], $this->plugin_version);
+    }
+
+    public function webhookHandler()
+    {
+        $payload = file_get_contents('php://input');
+        OrkestaPay_Logger::log('#webhook', ['payload' => $payload]);
+
+        $headers = apache_request_headers();
+        $svix_headers = [];
+        foreach ($headers as $key => $value) {
+            $header = strtolower($key);
+            $svix_headers[$header] = $value;
+        }
+
+        try {
+            $secret = $this->whsec;
+            $wh = new \Svix\SvixWebhook($secret);
+            $json = $wh->verify($payload, $svix_headers);
+
+            if ($json->eventType !== 'order.update') {
+                header('HTTP/1.1 400 Bad Request');
+                header('Content-type: application/json');
+                echo json_encode(['error' => true, 'message' => 'Event type is not order.update.']);
+                exit();
+            }
+
+            $payment = $json->data;
+            if ($payment->status != 'COMPLETED') {
+                header('HTTP/1.1 400 Bad Request');
+                header('Content-type: application/json');
+                echo json_encode(['error' => true, 'message' => 'Transaction status is not completed.']);
+                exit();
+            }
+
+            $order = new WC_Order($payment->merchantOrderId);
+            OrkestaPay_Logger::log('#webhook', ['order_status' => $order->get_status()]);
+
+            if ($order->get_status() == 'processing' || $order->get_status() == 'completed') {
+                $order->payment_complete();
+                $order->add_order_note(sprintf("%s payment completed with Order Id of '%s'", $this->method_title, $payment->orderId));
+                // wc_reduce_stock_levels($order_id);
+            }
+        } catch (Exception $e) {
+            OrkestaPay_Logger::error('#webhook', ['error' => $e->getMessage()]);
+
+            header('HTTP/1.1 500 Internal Server Error');
+            header('Content-type: application/json');
+            echo json_encode(['error' => true, 'message' => $e->getMessage()]);
+            exit();
+        }
+
+        header('HTTP/1.1 200 OK');
+        header('Content-type: application/json');
+        echo json_encode(['success' => true]);
+        exit();
     }
 
     /**
@@ -89,7 +151,7 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
                 'title' => __('Description', 'woocommerce'),
                 'type' => 'textarea',
                 'description' => __('Payment method description that the customer will see on your website.', 'orkestapay'),
-                'default' => __('Pay with your credit card via Orkesta.', 'orkestapay'),
+                'default' => __('Pay with your credit card via OrkestaPay.', 'orkestapay'),
             ],
             'merchant_id' => [
                 'title' => __('Merchant ID', 'orkestapay'),
@@ -129,6 +191,17 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
                     'aria-autocomplete' => 'none',
                 ],
             ],
+            'whsec' => [
+                'title' => __('Webhook Signing Secret', 'orkestapay'),
+                'type' => 'password',
+                'default' => '',
+                'description' => __('This secret is required to verify payment notifications.', 'orkestapay'),
+                'custom_attributes' => [
+                    'autocomplete' => 'off',
+                    'aria-autocomplete' => 'none',
+                    'role' => 'presentation',
+                ],
+            ],
         ];
     }
 
@@ -149,7 +222,7 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
         if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
             // WooCommerce is NOT enabled!
             echo wp_kses_post('<div class="error"><p>');
-            echo __('Orkesta needs WooCommerce plugin is installed and activated to work.', 'orkestapay');
+            echo esc_html_e('Orkesta needs WooCommerce plugin is installed and activated to work.', 'orkestapay');
             echo wp_kses_post('</p></div>');
             return;
         }
@@ -157,8 +230,10 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
 
     function admin_options()
     {
-        wp_enqueue_style('font_montserrat', 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap', ORKESTAPAY_WC_PLUGIN_FILEy, [], $this->plugin_version);
-        wp_enqueue_style('orkesta_admin_style', plugins_url('assets/css/admin-style.css', ORKESTAPAY_WC_PLUGIN_FILEy), [], $this->plugin_version);
+        wp_enqueue_style('font_montserrat', 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap', ORKESTAPAY_WC_PLUGIN_FILE, [], $this->plugin_version);
+        wp_enqueue_style('orkesta_admin_style', plugins_url('assets/css/admin-style.css', ORKESTAPAY_WC_PLUGIN_FILE), [], $this->plugin_version);
+
+        $this->logo = plugins_url('assets/images/orkestapay.svg', ORKESTAPAY_WC_PLUGIN_FILE);
 
         include_once dirname(__DIR__) . '/templates/admin.php';
     }
@@ -172,16 +247,18 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
         $client_secret = $post_data['woocommerce_' . $this->id . '_client_secret'];
         $merchant_id = $post_data['woocommerce_' . $this->id . '_merchant_id'];
         $device_key = $post_data['woocommerce_' . $this->id . '_device_key'];
+        $whsec = $post_data['woocommerce_' . $this->id . '_whsec'];
 
         $this->settings['title'] = $post_data['woocommerce_' . $this->id . '_title'];
         $this->settings['description'] = $post_data['woocommerce_' . $this->id . '_description'];
         $this->settings['merchant_id'] = $merchant_id;
         $this->settings['device_key'] = $device_key;
+        $this->settings['whsec'] = $whsec;
         $this->settings['test_mode'] = $post_data['woocommerce_' . $this->id . '_test_mode'] == '1' ? 'yes' : 'no';
         $this->settings['enabled'] = $post_data['woocommerce_' . $this->id . '_enabled'] == '1' ? 'yes' : 'no';
         $this->test_mode = $post_data['woocommerce_' . $this->id . '_test_mode'] == '1';
 
-        if ($merchant_id == '' || $device_key == '') {
+        if ($merchant_id == '' || $device_key == '' || $whsec == '') {
             $this->settings['enabled'] = 'no';
             $settings->add_error('You need to enter all your credentials if you want to use this plugin.');
             return;
@@ -226,8 +303,8 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
         ];
 
         wp_enqueue_script('orkestapay_js_resource', ORKESTAPAY_JS_URL . '/script/orkestapay.js', [], $this->plugin_version, true);
-        wp_enqueue_script('orkestapay_payment_js', plugins_url('assets/js/orkesta-payment.js', ORKESTAPAY_WC_PLUGIN_FILEy), ['jquery'], $this->plugin_version, true);
-        wp_enqueue_style('orkestapay_checkout_style', plugins_url('assets/css/checkout-style.css', ORKESTAPAY_WC_PLUGIN_FILEy), [], $this->plugin_version, 'all');
+        wp_enqueue_script('orkestapay_payment_js', plugins_url('assets/js/orkesta-payment.js', ORKESTAPAY_WC_PLUGIN_FILE), ['jquery'], $this->plugin_version, true);
+        wp_enqueue_style('orkestapay_checkout_style', plugins_url('assets/css/checkout-style.css', ORKESTAPAY_WC_PLUGIN_FILE), [], $this->plugin_version, 'all');
         wp_localize_script('orkestapay_payment_js', 'orkestapay_payment_args', $payment_args);
     }
 
@@ -235,7 +312,7 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
     {
         wp_enqueue_script('wc-credit-card-form');
 
-        $this->images_dir = plugins_url('assets/images/', ORKESTAPAY_WC_PLUGIN_FILEy);
+        $this->images_dir = plugins_url('assets/images/', ORKESTAPAY_WC_PLUGIN_FILE);
 
         include_once dirname(__DIR__) . '/templates/payment.php';
     }
@@ -266,13 +343,13 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
 
         try {
-            $orderDTO = WC_Orkesta_Helper::transform_data_4_orders($customerId, $order);
-            $orkestaOrder = WC_Orkesta_API::request($orderDTO, 'orders');
+            $orderDTO = OrkestaPay_Helper::transform_data_4_orders($customerId, $order);
+            $orkestaOrder = OrkestaPay_API::request($orderDTO, 'orders');
 
             $this->saveOrkestaCustomerId($customerId);
 
-            $paymentDTO = WC_Orkesta_Helper::transform_data_4_payment($paymentMethodId, $order, $deviceSessionId, $orkestaCardCvc);
-            $orkestaPayment = WC_Orkesta_API::request($paymentDTO, "orders/{$orkestaOrder->order_id}/payments");
+            $paymentDTO = OrkestaPay_Helper::transform_data_4_payment($paymentMethodId, $order, $deviceSessionId, $orkestaCardCvc);
+            $orkestaPayment = OrkestaPay_API::request($paymentDTO, "orders/{$orkestaOrder->order_id}/payments");
 
             if ($orkestaPayment->status !== 'COMPLETED') {
                 throw new Exception(__('Payment Failed.', 'orkestapay'));
@@ -294,7 +371,7 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
                 'redirect' => $this->get_return_url($order),
             ];
         } catch (Exception $e) {
-            WC_Orkesta_Logger::error('#process_payment', ['error' => $e->getMessage()]);
+            OrkestaPay_Logger::error('#process_payment', ['error' => $e->getMessage()]);
 
             $order->add_order_note(sprintf("%s Credit card payment failed with message: '%s'", $this->method_title, $e->getMessage()));
             $order->update_status('failed');
@@ -313,10 +390,10 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
      */
     protected function validateOrkestaCredentials($client_id, $client_secret)
     {
-        $token_result = WC_Orkesta_API::get_access_token($client_id, $client_secret);
+        $token_result = OrkestaPay_API::get_access_token($client_id, $client_secret);
 
         if (!array_key_exists('access_token', $token_result)) {
-            WC_Orkesta_Logger::error('#validateOrkestaCredentials', ['error' => 'Error al obtener access_token']);
+            OrkestaPay_Logger::error('#validateOrkestaCredentials', ['error' => 'Error al obtener access_token']);
 
             return false;
         }
@@ -337,7 +414,7 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
         }
 
         $customerId = get_user_meta(get_current_user_id(), '_orkesta_customer_id', true);
-        if (WC_Orkesta_Helper::is_null_or_empty_string($customerId)) {
+        if (OrkestaPay_Helper::is_null_or_empty_string($customerId)) {
             return null;
         }
 
@@ -350,10 +427,12 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
             return;
         }
 
-        $existsCustomerId = get_user_meta(get_current_user_id(), '_orkesta_customer_id', true);
-        if (WC_Orkesta_Helper::is_null_or_empty_string($existsCustomerId)) {
-            update_user_meta(get_current_user_id(), '_orkesta_customer_id', $orkestaCustomerId);
-        }
+        update_user_meta(get_current_user_id(), '_orkesta_customer_id', $orkestaCustomerId);
+
+        // $existsCustomerId = get_user_meta(get_current_user_id(), '_orkesta_customer_id', true);
+        // if (OrkestaPay_Helper::is_null_or_empty_string($existsCustomerId)) {
+        //     update_user_meta(get_current_user_id(), '_orkesta_customer_id', $orkestaCustomerId);
+        // }
 
         return;
     }
@@ -365,10 +444,10 @@ class WC_Orkesta_Gateway extends WC_Payment_Gateway
      */
     public function orkesta_get_access_token()
     {
-        $token_result = WC_Orkesta_API::get_access_token($this->client_id, $this->client_secret);
+        $token_result = OrkestaPay_API::get_access_token($this->client_id, $this->client_secret);
 
         if (!array_key_exists('access_token', $token_result)) {
-            WC_Orkesta_Logger::error('#orkesta_get_access_token', ['error' => 'Error al obtener access_token']);
+            OrkestaPay_Logger::error('#orkesta_get_access_token', ['error' => 'Error al obtener access_token']);
 
             wp_send_json_error(
                 [

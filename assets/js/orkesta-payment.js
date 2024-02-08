@@ -1,6 +1,6 @@
 jQuery(document).ready(async function () {
     var $form = jQuery('form.checkout');
-    const orkesta = initOrkesta();
+    const orkesta = initOrkestaPay();
     console.log('orkesta.js is ready!', orkesta);
 
     // Orkesta params
@@ -69,7 +69,7 @@ jQuery(document).ready(async function () {
             const paymentMethodData = {
                 type: 'CARD',
                 card: {
-                    holder_name: holderName,
+                    holder_name: jQuery('#billing_first_name').val(),
                     holder_last_name: jQuery('#billing_last_name').val(),
                     number: cardNumber.replace(/ /g, ''),
                     expiration_month: expires['month'],

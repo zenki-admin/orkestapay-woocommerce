@@ -39,10 +39,10 @@ function orkestapay_init_gateway_class()
         return;
     }
 
-    include_once 'includes/class-wc-orkestapay-logger.php';
-    include_once 'includes/class-wc-orkestapay-api.php';
-    include_once 'includes/class-wc-orkestapay-helper.php';
-    include_once 'includes/class-wc-orkestapay.php';
+    include_once 'includes/class-orkestapay-logger.php';
+    include_once 'includes/class-orkestapay-api.php';
+    include_once 'includes/class-orkestapay-helper.php';
+    include_once 'includes/class-orkestapay.php';
 
     add_filter('woocommerce_payment_gateways', 'orkestapay_add_gateway_class');
 
@@ -63,7 +63,7 @@ function orkestapay_init_gateway_class()
      */
     function orkestapay_add_gateway_class($gateways)
     {
-        $gateways[] = 'WC_Orkesta_Gateway';
+        $gateways[] = 'OrkestaPay_Gateway';
         return $gateways;
     }
 }
@@ -80,7 +80,7 @@ function orkesta_woocommerce_order_refunded($order_id, $refund_id)
     $order = wc_get_order($order_id);
     $refund = wc_get_order($refund_id);
 
-    WC_Orkesta_Logger::log('#orkesta_woocommerce_order_refunded', ['order_id' => $order_id, 'refund_id' => $refund_id, 'payment_method' => $order->get_payment_method()]);
+    OrkestaPay_Logger::log('#orkesta_woocommerce_order_refunded', ['order_id' => $order_id, 'refund_id' => $refund_id, 'payment_method' => $order->get_payment_method()]);
 
     if ($order->get_payment_method() !== 'orkestapay') {
         return;
@@ -88,20 +88,20 @@ function orkesta_woocommerce_order_refunded($order_id, $refund_id)
 
     $orkestaOrderId = get_post_meta($order_id, '_orkesta_order_id', true);
     $orkestaPaymentId = get_post_meta($order_id, '_orkesta_payment_id', true);
-    WC_Orkesta_Logger::log('#orkesta_woocommerce_order_refunded', ['orkesta_order_id' => $orkestaOrderId, 'orkesta_payment_id' => $orkestaPaymentId]);
+    OrkestaPay_Logger::log('#orkesta_woocommerce_order_refunded', ['orkesta_order_id' => $orkestaOrderId, 'orkesta_payment_id' => $orkestaPaymentId]);
 
-    if (WC_Orkesta_Helper::is_null_or_empty_string($orkestaOrderId) || WC_Orkesta_Helper::is_null_or_empty_string($orkestaPaymentId)) {
+    if (OrkestaPay_Helper::is_null_or_empty_string($orkestaOrderId) || OrkestaPay_Helper::is_null_or_empty_string($orkestaPaymentId)) {
         return;
     }
 
     $refundData = ['description' => $refund->get_reason(), 'amount' => floatval($refund->get_amount())];
 
     try {
-        WC_Orkesta_API::request($refundData, "orders/{$orkestaOrderId}/payments/{$orkestaPaymentId}/refund", 'PATCH');
+        OrkestaPay_API::request($refundData, "orders/{$orkestaOrderId}/payments/{$orkestaPaymentId}/refund", 'PATCH');
 
         $order->add_order_note('Refund was requested.');
     } catch (Exception $e) {
-        WC_Orkesta_Logger::error('#orkesta_woocommerce_order_refunded', ['error' => $e->getMessage()]);
+        OrkestaPay_Logger::error('#orkesta_woocommerce_order_refunded', ['error' => $e->getMessage()]);
         $order->add_order_note('There was an error creating the refund: ' . $e->getMessage());
     }
 

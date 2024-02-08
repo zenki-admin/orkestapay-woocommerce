@@ -5,26 +5,26 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
     die();
 }
 
-uninstall_orkesta_plugin();
+orkestapay_uninstall_plugin();
 
 /**
  * Deletes plugin settings
  *
  * @return void
  */
-function uninstall_orkesta_plugin()
+function orkestapay_uninstall_plugin()
 {
     if (function_exists('is_multisite') && is_multisite()) {
         if (false == is_super_admin()) {
             return;
         }
 
-        delete_site_option('woocommerce_orkesta_settings');
+        delete_site_option('woocommerce_orkestapay_settings');
     } else {
         if (!current_user_can('activate_plugins')) {
             return;
         }
 
-        delete_option('woocommerce_orkesta_settings');
+        delete_option('woocommerce_orkestapay_settings');
     }
 }

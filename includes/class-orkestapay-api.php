@@ -4,29 +4,29 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * WC_Orkesta_API class.
+ * OrkestaPay_API class.
  *
- * Communicates with Stripe API.
+ * Communicates with OrkestaPay API.
  */
-class WC_Orkesta_API
+class OrkestaPay_API
 {
     /**
-     * Transient name for Orkesta's token
+     * Transient name for OrkestaPay's token
      */
     const ORKESTAPAY_TOKEN = 'orkestapay_token';
 
     /**
-     * Orkesta's token expiration time in seconds
+     * OrkestaPay's token expiration time in seconds
      */
     const ORKESTAPAY_TOKEN_EXPIRATION = 1800;
 
     /**
-     * Orkesta API Endpoint
+     * OrkestaPay API Endpoint
      */
     const ENDPOINT = ORKESTAPAY_API_URL;
 
     /**
-     * Orkesta Auth Endpoint
+     * OrkestaPay Auth Endpoint
      */
     const AUTH_ENDPOINT = ORKESTAPAY_AUTH_URL;
 
@@ -119,7 +119,7 @@ class WC_Orkesta_API
     }
 
     /**
-     * Send the request to Orkesta's API
+     * Send the request to OrkestaPay's API
      *
      * @param array  $request
      * @param string $api
@@ -150,12 +150,12 @@ class WC_Orkesta_API
 
         if (is_wp_error($response) || empty($response['body']) || ($responseCode < 200 || $responseCode >= 300)) {
             $responseMessage = empty($response['body']) ? wp_remote_retrieve_response_message($response) : json_decode($response['body'], true)['message'];
-            WC_Orkesta_Logger::error('#request', ['api' => $api, 'headers' => $headers, 'request' => json_encode($request), 'error_code' => $responseCode, 'error_message' => $response]);
+            OrkestaPay_Logger::error('#request', ['api' => $api, 'headers' => $headers, 'request' => json_encode($request), 'error_code' => $responseCode, 'error_message' => $response]);
 
-            throw new Exception(__($responseMessage), $responseCode);
+            throw new Exception($responseMessage, $responseCode);
         }
 
-        WC_Orkesta_Logger::log('#request', ['api' => $api, 'headers' => $headers, 'request' => json_encode($request), 'response_code' => $responseCode, 'response' => $response['body']]);
+        OrkestaPay_Logger::log('#request', ['api' => $api, 'headers' => $headers, 'request' => json_encode($request), 'response_code' => $responseCode, 'response' => $response['body']]);
 
         if ($with_headers) {
             return [
@@ -186,18 +186,18 @@ class WC_Orkesta_API
 
         if (is_wp_error($response) || empty($response['body']) || ($responseCode < 200 || $responseCode >= 300)) {
             $responseMessage = wp_remote_retrieve_response_message($response);
-            WC_Orkesta_Logger::error('#retrieve', ['api' => $api, 'headers' => $headers, 'error_code' => $responseCode, 'error_message' => $responseMessage]);
+            OrkestaPay_Logger::error('#retrieve', ['api' => $api, 'headers' => $headers, 'error_code' => $responseCode, 'error_message' => $responseMessage]);
 
             throw new Exception(__('There was a problem connecting to the Orkesta API endpoint.', 'orkestapay'), $responseCode);
         }
 
-        WC_Orkesta_Logger::log('#retrieve', ['api' => $api, 'headers' => $headers, 'response_code' => $responseCode, 'response' => $response['body']]);
+        OrkestaPay_Logger::log('#retrieve', ['api' => $api, 'headers' => $headers, 'response_code' => $responseCode, 'response' => $response['body']]);
 
         return json_decode($response['body']);
     }
 
     /**
-     * Get Orkesta's access token
+     * Get OrkestaPay's access token
      *
      * @return array
      */
@@ -223,12 +223,12 @@ class WC_Orkesta_API
 
         if (is_wp_error($response) || empty($response['body']) || ($responseCode < 200 || $responseCode >= 300)) {
             $responseMessage = empty($response['body']) ? wp_remote_retrieve_response_message($response) : json_decode($response['body'], true)['message'];
-            WC_Orkesta_Logger::error('#get_access_token', ['error_code' => $responseCode, 'error_message' => $response]);
+            OrkestaPay_Logger::error('#get_access_token', ['error_code' => $responseCode, 'error_message' => $response]);
 
             throw new Exception($responseMessage, $responseCode);
         }
 
-        WC_Orkesta_Logger::log('#get_access_token', ['response_code' => $responseCode, 'response' => $response['body']]);
+        OrkestaPay_Logger::log('#get_access_token', ['response_code' => $responseCode, 'response' => $response['body']]);
 
         set_transient(self::ORKESTAPAY_TOKEN, $response['body'], self::ORKESTAPAY_TOKEN_EXPIRATION);
 

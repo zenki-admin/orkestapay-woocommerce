@@ -4,10 +4,11 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Log all
+ *  OrkestaPay_Logger class.
  *
+ * Log all
  */
-class WC_Orkesta_Logger
+class OrkestaPay_Logger
 {
     public static $logger;
     const WC_LOG_FILENAME = 'orkestapay';

@@ -33,37 +33,43 @@ Upgrade your WooCommerce store with our Payment Orchestration Plugin and revolut
 
 Want to learn [more](https://orkestapay.com/)?
 
-Built and supported by [Zenki](https://zenkipay.fi/).
+= Privacy notices =
+
+* It's important to clarify that our plugin relies on a external services. These additional services are required for specific plugin features.
+* To learn more about the external services our plugin uses, we provide you with the following link: [https://orkestapay.com/](https://orkestapay.com/).
+* To ensure transparency and regulatory compliance, we recommend reviewing the terms of use and privacy policies of OrkestaPay service. You can access these documents via the following links:
+Terms of Use: [https://orkestapay.com/politica-de-privacidad/](https://orkestapay.com/politica-de-privacidad/)
+Privacy Policy: [https://orkestapay.com/terminos-y-condiciones/](https://orkestapay.com/terminos-y-condiciones/)
 
 == Installation ==
 
 = Requirements =
 
-To install Orkesta Payments Orchestration for WooCommerce, you'll need:
+To install OrkestaPay, you'll need:
 
 * WordPress Version 5.8 or newer (installed).
 * WooCommerce Version 6.8 or newer (installed and activated).
 * PHP Version 7.1 or newer.
-* Orkesta merchat [account](https://orkestapay.com/).
+* OrkestaPay merchat [account](https://orkestapay.com/).
 
 = Instructions =
 
 1. Log in to WordPress admin.
 2. Go to **Plugins > Add New**.
-3. Search for the **Orkesta** plugin.
+3. Search for the **OrkestaPay** plugin.
 4. Click on **Install Now** and wait until the plugin is installed successfully.
-5. You can activate the plugin immediately by clicking on create your Orkesta account [here](https://orkestapay.com/).
+5. You can activate the plugin immediately by clicking on create your OrkestaPay account [here](https://orkestapay.com/).
 6. Now on the success page. If you want to activate it later, you can do so via **Plugins > Installed Plugins**.
 
 = Setup and Configuration =
 
-Follow the steps below to connect the plugin to your Orkesta account:
+Follow the steps below to connect the plugin to your OrkestaPay account:
 
-1. After you have activated the Orkesta plugin, go to **WooCommerce  > Settings**.
+1. After you have activated the OrkestaPay plugin, go to **WooCommerce  > Settings**.
 2. Click the **Payments** tab.
-3. The Payment methods list will include one Orkesta options. Click on **Orkesta** .
-4. Enter your keys. If you do not have a Orkesta merchant account, click **Create your Orkesta account [here](https://orkestapay.com/)**
-5. After you have successfully obtained you plugin keys, click on the **Enable Orkesta** checkbox to enable the plugin.
+3. The Payment methods list will include one OrkestaPay options. Click on **OrkestaPay** .
+4. Enter your keys. If you do not have a OrkestaPay merchant account, click **Create your OrkestaPay account [here](https://orkestapay.com/)**
+5. After you have successfully obtained you plugin keys, click on the **Enable OrkestaPay** checkbox to enable the plugin.
 6. Click **Save changes**.
 
 == Screenshots ==
