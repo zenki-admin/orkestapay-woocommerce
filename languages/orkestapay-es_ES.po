@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Orkesta Payments Orchestration for WooCommerce\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-11-29 01:58+0000\n"
-"PO-Revision-Date: 2024-02-08 18:27+0000\n"
+"PO-Revision-Date: 2024-02-09 00:04+0000\n"
 "Last-Translator: \n"
 "Language-Team: Spanish (Spain)\n"
 "Language: es_ES\n"
@@ -70,8 +70,9 @@ msgid "Enable"
 msgstr "Habilitar"
 
 #: includes/class-orkestapay.php:131
-msgid "Enable Orkesta"
-msgstr "Habiltar Orkesta"
+#| msgid "Enable Orkesta"
+msgid "Enable OrkestaPay"
+msgstr "Habiltar OrkestaPay"
 
 #: includes/class-orkestapay.php:138
 msgid "Enable test mode"
@@ -117,18 +118,17 @@ msgstr ""
 "funcionar."
 
 #: includes/class-orkestapay.php:32
-#, fuzzy
 #| msgid "Orkesta"
 msgid "OrkestaPay"
-msgstr "Orkesta"
+msgstr "OrkestaPay"
 
 #. Name of the plugin
 msgid "OrkestaPay for WooCommerce"
 msgstr "OrkestaPay for WooCommerce"
 
 #: includes/class-orkestapay.php:154
-msgid "Pay with your credit card via OrkestaPay."
-msgstr "Paga con tu tarjeta de crédito a través de OrkestaPay."
+msgid "Pay with your credit or debit card."
+msgstr "Paga con tu tarjeta de crédito o débito."
 
 #: includes/class-orkestapay.php:355
 msgid "Payment Failed."

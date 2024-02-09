@@ -128,7 +128,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
     {
         $this->form_fields = [
             'enabled' => [
-                'title' => __('Enable Orkesta', 'orkestapay'),
+                'title' => __('Enable OrkestaPay', 'orkestapay'),
                 'label' => __('Enable', 'orkestapay'),
                 'type' => 'checkbox',
                 'default' => 'no',
@@ -151,7 +151,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
                 'title' => __('Description', 'woocommerce'),
                 'type' => 'textarea',
                 'description' => __('Payment method description that the customer will see on your website.', 'orkestapay'),
-                'default' => __('Pay with your credit card via OrkestaPay.', 'orkestapay'),
+                'default' => __('Pay with your credit or debit card.', 'orkestapay'),
             ],
             'merchant_id' => [
                 'title' => __('Merchant ID', 'orkestapay'),
