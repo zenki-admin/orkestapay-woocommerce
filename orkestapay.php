@@ -20,9 +20,9 @@ if (!defined('ABSPATH')) {
 }
 
 define('ORKESTAPAY_WC_PLUGIN_FILE', __FILE__);
-define('ORKESTAPAY_API_URL', 'https://api.dev.orkestapay.com/v1/');
-define('ORKESTAPAY_AUTH_URL', 'https://auth.dev.orkestapay.com/auth/realms/orkesta-local/protocol/openid-connect/token');
-define('ORKESTAPAY_JS_URL', 'https://checkout.dev.orkestapay.com');
+define('ORKESTAPAY_API_URL', 'https://api.orkestapay.com/v1/');
+define('ORKESTAPAY_AUTH_URL', 'https://auth.orkestapay.com/auth/realms/orkesta/protocol/openid-connect/token');
+define('ORKESTAPAY_JS_URL', 'https://checkout.orkestapay.com');
 
 // Languages traslation
 load_plugin_textdomain('orkestapay', false, dirname(plugin_basename(__FILE__)) . '/languages/');
