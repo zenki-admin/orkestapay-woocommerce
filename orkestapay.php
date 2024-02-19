@@ -20,7 +20,8 @@ if (!defined('ABSPATH')) {
 }
 
 define('ORKESTAPAY_WC_PLUGIN_FILE', __FILE__);
-define('ORKESTAPAY_API_URL', 'https://api.orkestapay.com/v1/');
+define('ORKESTAPAY_API_URL', 'https://api.orkestapay.com');
+define('ORKESTAPAY_API_SAND_URL', 'https://api.sand.orkestapay.com');
 define('ORKESTAPAY_AUTH_URL', 'https://auth.orkestapay.com/auth/realms/orkesta/protocol/openid-connect/token');
 define('ORKESTAPAY_JS_URL', 'https://checkout.orkestapay.com');
 
@@ -97,7 +98,10 @@ function orkesta_woocommerce_order_refunded($order_id, $refund_id)
     $refundData = ['description' => $refund->get_reason(), 'amount' => floatval($refund->get_amount())];
 
     try {
-        OrkestaPay_API::request($refundData, "orders/{$orkestaOrderId}/payments/{$orkestaPaymentId}/refund", 'PATCH');
+        $orkestapay = new OrkestaPay_Gateway();
+        $apiHost = $orkestapay->getApiHost();
+
+        OrkestaPay_API::request($refundData, "$apiHost/v1/orders/{$orkestaOrderId}/payments/{$orkestaPaymentId}/refund", 'PATCH');
 
         $order->add_order_note('Refund was requested.');
     } catch (Exception $e) {

@@ -21,11 +21,6 @@ class OrkestaPay_API
     const ORKESTAPAY_TOKEN_EXPIRATION = 1800;
 
     /**
-     * OrkestaPay API Endpoint
-     */
-    const ENDPOINT = ORKESTAPAY_API_URL;
-
-    /**
      * OrkestaPay Auth Endpoint
      */
     const AUTH_ENDPOINT = ORKESTAPAY_AUTH_URL;
@@ -139,7 +134,7 @@ class OrkestaPay_API
             $headers['Idempotency-Key'] = wp_hash($idempotency_key, 'nonce');
         }
 
-        $response = wp_safe_remote_post(self::ENDPOINT . $api, [
+        $response = wp_safe_remote_post($api, [
             'method' => $method,
             'headers' => $headers,
             'body' => json_encode($request),
@@ -176,7 +171,7 @@ class OrkestaPay_API
     {
         $headers = self::get_headers();
 
-        $response = wp_safe_remote_get(self::ENDPOINT . $api, [
+        $response = wp_safe_remote_get($api, [
             'method' => 'GET',
             'headers' => array_merge($headers, $extraHeaders),
             'timeout' => 30,

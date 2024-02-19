@@ -48,14 +48,14 @@ jQuery(document).ready(async function () {
 
             // Si no existe el orkestaCustomerId, lo buscamos por email
             if (orkestaCustomerId === null) {
-                const retrieveCustomer = await doAjax(`${apiUrl}customers?email=${email}&limit=1`, null, 'GET', headers);
+                const retrieveCustomer = await doAjax(`${apiUrl}/v1/customers?email=${email}&limit=1`, null, 'GET', headers);
                 orkestaCustomerId = retrieveCustomer.length ? retrieveCustomer[0].id : null;
             }
 
             // Si el orkestaCustomerId sigue siendo null, creamos el customer
             if (orkestaCustomerId === null) {
                 const customerData = { name, lastName, email };
-                const customer = await doAjax(`${apiUrl}customers`, customerData, 'POST', headers);
+                const customer = await doAjax(`${apiUrl}/v1/customers`, customerData, 'POST', headers);
                 orkestaCustomerId = customer.id;
             }
 
@@ -79,7 +79,7 @@ jQuery(document).ready(async function () {
                 },
             };
 
-            const paymentMethod = await doAjax(`${apiUrl}customers/${orkestaCustomerId}/payment-methods`, paymentMethodData, 'POST', headers);
+            const paymentMethod = await doAjax(`${apiUrl}/v1/customers/${orkestaCustomerId}/payment-methods`, paymentMethodData, 'POST', headers);
 
             $form.append('<input type="hidden" name="orkesta_payment_method_id" value="' + paymentMethod.id + '" />');
 

@@ -294,7 +294,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         $get_access_token_url = esc_url(WC()->api_request_url('orkesta_get_access_token'));
 
         $payment_args = [
-            'orkestapay_api_url' => ORKESTAPAY_API_URL,
+            'orkestapay_api_url' => $this->getApiHost(),
             'plugin_payment_gateway_id' => $this->id,
             'orkestapay_customer_id' => $orkesta_customer_id,
             'merchant_id' => $this->merchant_id,
@@ -335,6 +335,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
     public function process_payment($order_id)
     {
         global $woocommerce;
+        $apiHost = $this->getApiHost();
         $deviceSessionId = wc_clean($_POST['orkesta_device_session_id']);
         $paymentMethodId = wc_clean($_POST['orkesta_payment_method_id']);
         $customerId = wc_clean($_POST['orkesta_customer_id']);
@@ -344,12 +345,12 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
 
         try {
             $orderDTO = OrkestaPay_Helper::transform_data_4_orders($customerId, $order);
-            $orkestaOrder = OrkestaPay_API::request($orderDTO, 'orders');
+            $orkestaOrder = OrkestaPay_API::request($orderDTO, "$apiHost/v1/orders");
 
             $this->saveOrkestaCustomerId($customerId);
 
             $paymentDTO = OrkestaPay_Helper::transform_data_4_payment($paymentMethodId, $order, $deviceSessionId, $orkestaCardCvc);
-            $orkestaPayment = OrkestaPay_API::request($paymentDTO, "orders/{$orkestaOrder->order_id}/payments");
+            $orkestaPayment = OrkestaPay_API::request($paymentDTO, "$apiHost/v1/orders/{$orkestaOrder->order_id}/payments");
 
             if ($orkestaPayment->status !== 'COMPLETED') {
                 throw new Exception(__('Payment Failed.', 'orkestapay'));
@@ -464,6 +465,11 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         ]);
 
         die();
+    }
+
+    public function getApiHost()
+    {
+        return $this->test_mode ? ORKESTAPAY_API_SAND_URL : ORKESTAPAY_API_URL;
     }
 }
 ?>
