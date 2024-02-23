@@ -43,7 +43,7 @@ jQuery(document).ready(async function () {
             const accessTokenResponse = await doAjax(getAccessTokenUrl);
             const headers = { Authorization: `Bearer ${accessTokenResponse.data.access_token}` };
             const name = jQuery('#billing_first_name').val().trim();
-            const lastName = jQuery('#billing_last_name').val().trim();
+            const last_name = jQuery('#billing_last_name').val().trim();
             const email = jQuery('#billing_email').val().trim();
 
             // Si no existe el orkestaCustomerId, lo buscamos por email
@@ -54,7 +54,7 @@ jQuery(document).ready(async function () {
 
             // Si el orkestaCustomerId sigue siendo null, creamos el customer
             if (orkestaCustomerId === null) {
-                const customerData = { name, lastName, email };
+                const customerData = { name, last_name, email };
                 const customer = await doAjax(`${apiUrl}/v1/customers`, customerData, 'POST', headers);
                 orkestaCustomerId = customer.id;
             }
@@ -124,13 +124,21 @@ async function doAjax(url, data, method = 'POST', headers = {}) {
 }
 
 function displayErrorMessage(error) {
-    jQuery('form.checkout').unblock();
     jQuery('.woocommerce-error').remove();
     jQuery('form.checkout')
         .closest('div')
         .before(
             '<ul style="background-color: #e2401c; color: #fff; margin-bottom: 10px; margin-top: 10px; border-radius: 8px;" class="woocommerce_error woocommerce-error"><li> ' + error + ' </li></ul>'
         );
+    jQuery('form.checkout').unblock();
+
+    const scrollElement = $('.woocommerce-NoticeGroup-checkout');
+    $('html, body').animate(
+        {
+            scrollTop: scrollElement.offset().top - 100,
+        },
+        1000
+    );
 }
 
 function cardExpiryVal(value) {
