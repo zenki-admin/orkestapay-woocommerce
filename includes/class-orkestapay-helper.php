@@ -70,6 +70,32 @@ class OrkestaPay_Helper
             ],
             'total_amount' => $order->get_total(),
             'products' => $products,
+            'shipping_address' => [
+                'first_name' => $order->get_shipping_first_name(),
+                'last_name' => $order->get_shipping_last_name(),
+                'email' => $order->get_billing_email(),
+                'address' => [
+                    'line_1' => $order->get_shipping_address_1(),
+                    'line_2' => $order->get_shipping_address_2(),
+                    'city' => $order->get_shipping_city(),
+                    'state' => $order->get_shipping_state(),
+                    'country' => $order->get_shipping_country(),
+                    'zip_code' => $order->get_shipping_postcode(),
+                ],
+            ],
+            'billing_address' => [
+                'first_name' => $order->get_billing_first_name(),
+                'last_name' => $order->get_billing_last_name(),
+                'email' => $order->get_billing_email(),
+                'address' => [
+                    'line_1' => $order->get_billing_address_1(),
+                    'line_2' => $order->get_billing_address_2(),
+                    'city' => $order->get_billing_city(),
+                    'state' => $order->get_billing_state(),
+                    'country' => $order->get_billing_country(),
+                    'zip_code' => $order->get_billing_postcode(),
+                ],
+            ],
         ];
 
         return $orderData;
