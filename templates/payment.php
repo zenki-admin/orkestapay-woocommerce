@@ -11,12 +11,9 @@ if (!defined('ABSPATH')) {
     <p class="orkesta-cards-copy"><?php esc_html_e('Accepted cards', 'orkestapay'); ?></p>
 
     <div class="orkesta-credit-cards">
-        <img alt="visa" src="<?php echo esc_url($this->images_dir); ?>visa.png" />
-        <img alt="mc" src="<?php echo esc_url($this->images_dir); ?>mc.png" />
-        <img alt="amex" src="<?php echo esc_url($this->images_dir); ?>amex.png" />
-        <img alt="discover" src="<?php echo esc_url($this->images_dir); ?>discover.png" />
-        <img alt="diners" src="<?php echo esc_url($this->images_dir); ?>diners.png" />
-        <img alt="jbc" src="<?php echo esc_url($this->images_dir); ?>jbc.png" />
+        <?php foreach ($this->brands as $item): ?>   
+            <img alt="<?php echo esc_attr($item->brand); ?>" src="<?php echo esc_url($item->logo); ?>" />
+        <?php endforeach; ?>           
     </div>
 
     <p><?php echo esc_html($this->description); ?></p>

@@ -24,6 +24,7 @@ define('ORKESTAPAY_API_URL', 'https://api.orkestapay.com');
 define('ORKESTAPAY_API_SAND_URL', 'https://api.sand.orkestapay.com');
 define('ORKESTAPAY_AUTH_URL', 'https://auth.orkestapay.com/auth/realms/orkesta/protocol/openid-connect/token');
 define('ORKESTAPAY_JS_URL', 'https://checkout.orkestapay.com');
+define('ORKESTAPAY_JS_SAND_URL', 'https://checkout.sand.orkestapay.com');
 
 // Languages traslation
 load_plugin_textdomain('orkestapay', false, dirname(plugin_basename(__FILE__)) . '/languages/');

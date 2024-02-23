@@ -292,9 +292,10 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
 
         $orkesta_customer_id = $this->getOrkestaCustomerId();
         $get_access_token_url = esc_url(WC()->api_request_url('orkesta_get_access_token'));
+        $apiHost = $this->getApiHost();
 
         $payment_args = [
-            'orkestapay_api_url' => $this->getApiHost(),
+            'orkestapay_api_url' => $apiHost,
             'plugin_payment_gateway_id' => $this->id,
             'orkestapay_customer_id' => $orkesta_customer_id,
             'merchant_id' => $this->merchant_id,
@@ -302,7 +303,9 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
             'get_access_token_url' => $get_access_token_url,
         ];
 
-        wp_enqueue_script('orkestapay_js_resource', ORKESTAPAY_JS_URL . '/script/orkestapay.js', [], $this->plugin_version, true);
+        $js_url = $this->getJsUrl();
+
+        wp_enqueue_script('orkestapay_js_resource', $js_url . '/script/orkestapay.js', [], $this->plugin_version, true);
         wp_enqueue_script('orkestapay_payment_js', plugins_url('assets/js/orkesta-payment.js', ORKESTAPAY_WC_PLUGIN_FILE), ['jquery'], $this->plugin_version, true);
         wp_enqueue_style('orkestapay_checkout_style', plugins_url('assets/css/checkout-style.css', ORKESTAPAY_WC_PLUGIN_FILE), [], $this->plugin_version, 'all');
         wp_localize_script('orkestapay_payment_js', 'orkestapay_payment_args', $payment_args);
@@ -312,7 +315,8 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
     {
         wp_enqueue_script('wc-credit-card-form');
 
-        $this->images_dir = plugins_url('assets/images/', ORKESTAPAY_WC_PLUGIN_FILE);
+        $apiHost = $this->getApiHost();
+        $this->brands = OrkestaPay_API::retrieve("$apiHost/v1/merchants/providers/brands");
 
         include_once dirname(__DIR__) . '/templates/payment.php';
     }
@@ -470,6 +474,11 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
     public function getApiHost()
     {
         return $this->test_mode ? ORKESTAPAY_API_SAND_URL : ORKESTAPAY_API_URL;
+    }
+
+    public function getJsUrl()
+    {
+        return $this->test_mode ? ORKESTAPAY_JS_SAND_URL : ORKESTAPAY_JS_URL;
     }
 }
 ?>
