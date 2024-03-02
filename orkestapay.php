@@ -20,8 +20,8 @@ if (!defined('ABSPATH')) {
 }
 
 define('ORKESTAPAY_WC_PLUGIN_FILE', __FILE__);
-define('ORKESTAPAY_API_URL', 'https://api.dev.orkestapay.com');
-define('ORKESTAPAY_API_SAND_URL', 'https://api.dev.orkestapay.com');
+define('ORKESTAPAY_API_URL', 'https://api.orkestapay.com');
+define('ORKESTAPAY_API_SAND_URL', 'https://api.sand.orkestapay.com');
 
 // Languages traslation
 load_plugin_textdomain('orkestapay', false, dirname(plugin_basename(__FILE__)) . '/languages/');
