@@ -171,54 +171,78 @@ class OrkestaPay_Helper
      *
      * @return array
      */
-    public static function transform_data_4_checkout($order, $returnUrl)
+    public static function transform_data_4_checkout($cart, $orketaPayCartId, $successUrl, $cancelUrl)
     {
         $products = [];
-        foreach ($order->get_items() as $item) {
-            $product = wc_get_product($item->get_product_id());
+        $customer = $cart->get_customer();
+        foreach ($cart->get_cart() as $item) {
+            $product = wc_get_product($item['product_id']);
             $name = trim(preg_replace('/[[:^print:]]/', '', strip_tags($product->get_title())));
-            $desc = trim(preg_replace('/[[:^print:]]/', '', strip_tags($product->get_description())));
+            $desc = trim(preg_replace('/[[:^print:]]/', '', strip_tags($product->get_short_description())));
             $thumbnailUrl = wp_get_attachment_image_url($product->get_image_id());
 
             $products[] = [
-                'id' => "{$item->get_product_id()}",
+                'id' => "{$product->get_id()}",
                 'name' => $name,
                 'description' => substr($desc, 0, 250),
-                'quantity' => $item->get_quantity(),
-                'unit_price' => $item->get_subtotal(),
+                'quantity' => $item['quantity'],
+                'unit_price' => wc_get_price_excluding_tax($product),
                 'thumbnail_url' => $thumbnailUrl,
             ];
         }
 
-        $convertedTime = date('Y-m-d H:i:s', strtotime(' +15 minutes '));
-        $expiresAt = (new DateTime($convertedTime))->getTimestamp();
+        // Definir la fecha futura (en este ejemplo, 1 hora en el futuro)
+        $expiresAt = strtotime('+1 hour') * 1000; // Convertir a milisegundos
 
         $checkoutData = [
-            // 'expires_at' => $expiresAt,
-            'completed_redirect_url' => $returnUrl,
-            'canceled_redirect_url' => wc_get_checkout_url(),
+            'expires_at' => $expiresAt,
+            'completed_redirect_url' => $successUrl,
+            'canceled_redirect_url' => $cancelUrl,
             'order' => [
-                'merchant_order_id' => "{$order->get_id()}",
-                'currency' => $order->get_currency(),
-                'locale' => 'es_MX',
-                'subtotal_amount' => $order->get_subtotal(),
-                'order_country' => $order->get_billing_country(),
+                'merchant_order_id' => $orketaPayCartId,
+                'currency' => get_woocommerce_currency(),
+                'subtotal_amount' => $cart->get_subtotal(),
+                'order_country' => $customer->get_billing_country(),
                 'additional_charges' => [
-                    'shipment' => $order->get_shipping_total(),
-                    'taxes' => $order->get_total_tax(),
+                    'shipment' => $cart->get_shipping_total(),
+                    'taxes' => $cart->get_taxes_total(),
                 ],
                 'discounts' => [
-                    'promo_discount' => $order->get_discount_total(),
+                    'promo_discount' => $cart->get_discount_total(),
                 ],
-                'total_amount' => $order->get_total(),
+                'total_amount' => $cart->total,
                 'products' => $products,
                 'customer' => [
-                    'external_id' => "{$order->get_user_id()}",
-                    'name' => $order->get_billing_first_name(),
-                    'last_name' => $order->get_billing_last_name(),
-                    'email' => $order->get_billing_email(),
-                    'phone' => $order->get_billing_phone(),
-                    'country' => $order->get_billing_country(),
+                    'external_id' => $customer->get_id(),
+                    'name' => $customer->get_billing_first_name(),
+                    'last_name' => $customer->get_billing_last_name(),
+                    'email' => $customer->get_billing_email(),
+                ],
+                'shipping_address' => [
+                    'first_name' => $customer->get_shipping_first_name(),
+                    'last_name' => $customer->get_shipping_last_name(),
+                    'email' => $customer->get_billing_email(),
+                    'address' => [
+                        'line_1' => $customer->get_shipping_address_1(),
+                        'line_2' => $customer->get_shipping_address_2(),
+                        'city' => $customer->get_shipping_city(),
+                        'state' => $customer->get_shipping_state(),
+                        'country' => $customer->get_shipping_country(),
+                        'zip_code' => $customer->get_shipping_postcode(),
+                    ],
+                ],
+                'billing_address' => [
+                    'first_name' => $customer->get_billing_first_name(),
+                    'last_name' => $customer->get_billing_last_name(),
+                    'email' => $customer->get_billing_email(),
+                    'address' => [
+                        'line_1' => $customer->get_billing_address_1(),
+                        'line_2' => $customer->get_billing_address_2(),
+                        'city' => $customer->get_billing_city(),
+                        'state' => $customer->get_billing_state(),
+                        'country' => $customer->get_billing_country(),
+                        'zip_code' => $customer->get_billing_postcode(),
+                    ],
                 ],
                 'config' => [
                     'use_3ds' => true,

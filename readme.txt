@@ -4,7 +4,7 @@ Tags: woocommerce, orkestapay, credit card, payments, orchestration, ecommerce, 
 Requires at least: 5.8
 Tested up to: 6.4.1
 Requires PHP: 7.1
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 

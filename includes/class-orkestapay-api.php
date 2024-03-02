@@ -18,12 +18,7 @@ class OrkestaPay_API
     /**
      * OrkestaPay's token expiration time in seconds
      */
-    const ORKESTAPAY_TOKEN_EXPIRATION = 1800;
-
-    /**
-     * OrkestaPay Auth Endpoint
-     */
-    const AUTH_ENDPOINT = ORKESTAPAY_AUTH_URL;
+    const ORKESTAPAY_TOKEN_EXPIRATION = 120;
 
     /**
      * ID API Key.
@@ -134,7 +129,7 @@ class OrkestaPay_API
             $headers['Idempotency-Key'] = wp_hash($idempotency_key, 'nonce');
         }
 
-        $response = wp_safe_remote_post($api, [
+        $response = wp_safe_remote_request($api, [
             'method' => $method,
             'headers' => $headers,
             'body' => json_encode($request),
@@ -198,19 +193,22 @@ class OrkestaPay_API
      */
     public static function get_access_token($client_id, $client_secret)
     {
+        $orkestapay = new OrkestaPay_Gateway();
+        $apiHost = $orkestapay->getApiHost();
+
         $token = get_transient(self::ORKESTAPAY_TOKEN);
         if ($token) {
             return json_decode($token, true);
         }
 
-        $credentials = ['client_id' => $client_id, 'client_secret' => $client_secret, 'grant_type' => 'client_credentials'];
+        $request = ['client_id' => $client_id, 'client_secret' => $client_secret, 'grant_type' => 'client_credentials'];
 
-        $response = wp_safe_remote_post(self::AUTH_ENDPOINT, [
+        $response = wp_safe_remote_request("$apiHost/v1/oauth/tokens", [
             'method' => 'POST',
             'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Type' => 'application/json',
             ],
-            'body' => $credentials,
+            'body' => json_encode($request),
             'timeout' => 30,
         ]);
 
@@ -218,12 +216,12 @@ class OrkestaPay_API
 
         if (is_wp_error($response) || empty($response['body']) || ($responseCode < 200 || $responseCode >= 300)) {
             $responseMessage = empty($response['body']) ? wp_remote_retrieve_response_message($response) : json_decode($response['body'], true)['message'];
-            OrkestaPay_Logger::error('#get_access_token', ['error_code' => $responseCode, 'error_message' => $response]);
+            OrkestaPay_Logger::error('#get_access_token', ['api' => "$apiHost/v1/oauth/tokens", 'error_code' => $responseCode, 'error_message' => $response]);
 
             throw new Exception($responseMessage, $responseCode);
         }
 
-        OrkestaPay_Logger::log('#get_access_token', ['response_code' => $responseCode, 'response' => $response['body']]);
+        OrkestaPay_Logger::log('#get_access_token', ['api' => "$apiHost/v1/oauth/tokens", 'response_code' => $responseCode, 'response' => $response['body']]);
 
         set_transient(self::ORKESTAPAY_TOKEN, $response['body'], self::ORKESTAPAY_TOKEN_EXPIRATION);
 
