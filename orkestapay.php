@@ -1,6 +1,6 @@
 <?php
 /*
- * Plugin Name: OrkestaPay for WooCommerce
+ * Plugin Name: OrkestaPay
  * Plugin URI: https://wordpress.org/plugins/orkestapay/
  * Description: Orchestrate multiple payment gateways for a frictionless, reliable, and secure checkout experience.
  * Author: Zenkipay

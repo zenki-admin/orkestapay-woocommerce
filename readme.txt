@@ -1,4 +1,4 @@
-=== OrkestaPay for WooCommerce ===
+=== OrkestaPay ===
 Contributors: zenkipay
 Tags: woocommerce, orkestapay, credit card, payments, orchestration, ecommerce, store, sales, sell, shop, shopping, cart, checkout
 Requires at least: 5.8

@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Orkesta Payments Orchestration for WooCommerce\n"
+"Project-Id-Version: OrkestaPay\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-11-29 01:58+0000\n"
 "PO-Revision-Date: 2024-02-28 00:55+0000\n"
@@ -89,8 +89,8 @@ msgid "OrkestaPay"
 msgstr "OrkestaPay"
 
 #. Name of the plugin
-msgid "OrkestaPay for WooCommerce"
-msgstr "OrkestaPay for WooCommerce"
+msgid "OrkestaPay"
+msgstr "OrkestaPay"
 
 #: includes/class-orkestapay.php:146
 msgid "Pay with your credit or debit card."
