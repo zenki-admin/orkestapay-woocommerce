@@ -8,13 +8,13 @@ Stable tag: 0.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Optimize payments seamlessly! Our WooCommerce plugin orchestrates multiple gateways for a frictionless, reliable, and secure checkout experience.
+Optimize payments seamlessly! Our plugin orchestrates multiple gateways for a frictionless, reliable, and secure checkout experience.
 
 == Description ==
 
 Unlocking Payment Ecosystem.
 
-Streamline and enhance your WooCommerce store's payment processing with our Payment Orchestration Plugin – the ultimate plugin designed to elevate your online business. 
+Streamline and enhance your WooCommerce store's payment processing with our payment orchestration plugin – the ultimate plugin designed to elevate your online business. 
 
 This comprehensive solution empowers you to effortlessly manage and optimize multiple payment gateways, ensuring seamless transactions for your customers.
 
@@ -29,7 +29,7 @@ Key Features:
 * Customizable User Interface
 * Automatic Currency Conversion
 
-Upgrade your WooCommerce store with our Payment Orchestration Plugin and revolutionize the way you handle payments.
+Upgrade your WooCommerce store with our payment orchestration plugin and revolutionize the way you handle payments.
 
 Want to learn [more](https://orkestapay.com/)?
 
@@ -78,5 +78,7 @@ Follow the steps below to connect the plugin to your OrkestaPay account:
 2. Credit card payment form.
 
 == Changelog ==
+= 0.2.0 =
+* Full checkout experience
 = 0.1.0 =
 * Initial release.
