@@ -171,10 +171,23 @@ class OrkestaPay_Helper
      *
      * @return array
      */
-    public static function transform_data_4_checkout($cart, $orketaPayCartId, $successUrl, $cancelUrl)
+    public static function transform_data_4_checkout($request, $cart, $orketaPayCartId, $successUrl, $cancelUrl)
     {
         $products = [];
-        $customer = $cart->get_customer();
+        $customer = [
+            'id' => $cart->get_customer()->get_id(),
+            'first_name' => wc_clean(wp_unslash($request['billing_first_name'])),
+            'last_name' => wc_clean(wp_unslash($request['billing_last_name'])),
+            'email' => wc_clean(wp_unslash($request['billing_email'])),
+            'phone' => isset($request['billing_phone']) ? wc_clean(wp_unslash($request['billing_phone'])) : '',
+            'billing_address_1' => wc_clean(wp_unslash($request['billing_address_1'])),
+            'billing_address_2' => wc_clean(wp_unslash($request['billing_address_2'])),
+            'billing_city' => wc_clean(wp_unslash($request['billing_city'])),
+            'billing_state' => wc_clean(wp_unslash($request['billing_state'])),
+            'billing_postcode' => wc_clean(wp_unslash($request['billing_postcode'])),
+            'billing_country' => wc_clean(wp_unslash($request['billing_country'])),
+        ];
+
         foreach ($cart->get_cart() as $item) {
             $product = wc_get_product($item['product_id']);
             $name = trim(preg_replace('/[[:^print:]]/', '', strip_tags($product->get_title())));
@@ -202,7 +215,7 @@ class OrkestaPay_Helper
                 'merchant_order_id' => $orketaPayCartId,
                 'currency' => get_woocommerce_currency(),
                 'subtotal_amount' => $cart->get_subtotal(),
-                'order_country' => $customer->get_billing_country(),
+                'order_country' => $customer['billing_country'],
                 'additional_charges' => [
                     'shipment' => $cart->get_shipping_total(),
                     'taxes' => $cart->get_taxes_total(),
@@ -213,35 +226,36 @@ class OrkestaPay_Helper
                 'total_amount' => $cart->total,
                 'products' => $products,
                 'customer' => [
-                    'external_id' => $customer->get_id(),
-                    'name' => $customer->get_billing_first_name(),
-                    'last_name' => $customer->get_billing_last_name(),
-                    'email' => $customer->get_billing_email(),
+                    'external_id' => $customer['id'],
+                    'name' => $customer['first_name'],
+                    'last_name' => $customer['last_name'],
+                    'email' => $customer['email'],
+                    'phone' => $customer['phone'],
                 ],
                 'shipping_address' => [
-                    'first_name' => $customer->get_shipping_first_name(),
-                    'last_name' => $customer->get_shipping_last_name(),
-                    'email' => $customer->get_billing_email(),
+                    'first_name' => $customer['first_name'],
+                    'last_name' => $customer['last_name'],
+                    'email' => $customer['email'],
                     'address' => [
-                        'line_1' => $customer->get_shipping_address_1(),
-                        'line_2' => $customer->get_shipping_address_2(),
-                        'city' => $customer->get_shipping_city(),
-                        'state' => $customer->get_shipping_state(),
-                        'country' => $customer->get_shipping_country(),
-                        'zip_code' => $customer->get_shipping_postcode(),
+                        'line_1' => $customer['billing_address_1'],
+                        'line_2' => $customer['billing_address_2'],
+                        'city' => $customer['billing_city'],
+                        'state' => $customer['billing_state'],
+                        'country' => $customer['billing_country'],
+                        'zip_code' => $customer['billing_postcode'],
                     ],
                 ],
                 'billing_address' => [
-                    'first_name' => $customer->get_billing_first_name(),
-                    'last_name' => $customer->get_billing_last_name(),
-                    'email' => $customer->get_billing_email(),
+                    'first_name' => $customer['first_name'],
+                    'last_name' => $customer['last_name'],
+                    'email' => $customer['email'],
                     'address' => [
-                        'line_1' => $customer->get_billing_address_1(),
-                        'line_2' => $customer->get_billing_address_2(),
-                        'city' => $customer->get_billing_city(),
-                        'state' => $customer->get_billing_state(),
-                        'country' => $customer->get_billing_country(),
-                        'zip_code' => $customer->get_billing_postcode(),
+                        'line_1' => $customer['billing_address_1'],
+                        'line_2' => $customer['billing_address_2'],
+                        'city' => $customer['billing_city'],
+                        'state' => $customer['billing_state'],
+                        'country' => $customer['billing_country'],
+                        'zip_code' => $customer['billing_postcode'],
                     ],
                 ],
                 'config' => [
@@ -249,6 +263,11 @@ class OrkestaPay_Helper
                 ],
             ],
         ];
+
+        // Si no existe un ID, se remueve el índice
+        if ($cart->get_customer()->get_id() === 0) {
+            unset($checkoutData['order']['customer']['external_id']);
+        }
 
         return $checkoutData;
     }

@@ -357,18 +357,17 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         header('HTTP/1.1 200 OK');
 
         // $current_shipping_method = WC()->session->get('chosen_shipping_methods');
-        // $shippingMethod = isset($_POST['shipping_method']) ? wc_clean(wp_unslash($_POST['shipping_method'])) : '';
-
         $successUrl = esc_url(WC()->api_request_url('orkesta_return_url'));
 
         try {
             $cart = WC()->cart;
             $apiHost = $this->getApiHost();
-            $orketaPayCartId = $this->getOrketaPayCartId();
-            $successUrl = "$successUrl?orkestapay_cart_id=$orketaPayCartId";
+            $orkestaPayCartId = $this->getOrkestaPayCartId();
+            $successUrl = "$successUrl?orkestapay_cart_id=$orkestaPayCartId";
             $cancelUrl = wc_get_checkout_url();
+            $request = $_POST;
 
-            $checkoutDTO = OrkestaPay_Helper::transform_data_4_checkout($cart, $orketaPayCartId, $successUrl, $cancelUrl);
+            $checkoutDTO = OrkestaPay_Helper::transform_data_4_checkout($request, $cart, $orkestaPayCartId, $successUrl, $cancelUrl);
             $orkestaCheckout = OrkestaPay_API::request($checkoutDTO, "$apiHost/v1/checkouts");
 
             WC()->session->set('orkestapay_order_id', $orkestaCheckout->order->order_id);
@@ -465,7 +464,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         exit();
     }
 
-    public function getOrketaPayCartId()
+    public function getOrkestaPayCartId()
     {
         $orkestapay_cart_id = WC()->session->get('orkestapay_cart_id');
 
