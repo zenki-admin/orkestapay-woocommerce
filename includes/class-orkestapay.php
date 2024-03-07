@@ -60,7 +60,17 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
 
     public function webhookHandler()
     {
-        $payload = file_get_contents('php://input');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('HTTP/1.1 405 Method Not Allowed');
+            header('Content-Type: application/json');
+            echo wp_json_encode(['message' => esc_html('Method Not Allowed')]);
+            exit();
+        }
+
+        $input_data = (string) file_get_contents('php://input');
+        // Sanitizar la entrada de datos
+        $payload = sanitize_text_field($input_data);
+
         OrkestaPay_Logger::log('#webhook', ['payload' => $payload]);
 
         $headers = apache_request_headers();
@@ -77,39 +87,37 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
 
             if ($json->eventType !== 'order.update') {
                 header('HTTP/1.1 400 Bad Request');
-                header('Content-type: application/json');
-                echo json_encode(['error' => true, 'message' => 'Event type is not order.update.']);
+                header('Content-Type: application/json');
+                echo wp_json_encode(['message' => esc_html('Event type is not order.update.')]);
                 exit();
             }
 
             $payment = $json->data;
             if ($payment->status != 'COMPLETED') {
                 header('HTTP/1.1 400 Bad Request');
-                header('Content-type: application/json');
-                echo json_encode(['error' => true, 'message' => 'Transaction status is not completed.']);
+                header('Content-Type: application/json');
+                echo wp_json_encode(['message' => esc_html('Transaction status is not completed.')]);
                 exit();
             }
 
             $order = new WC_Order($payment->merchantOrderId);
             OrkestaPay_Logger::log('#webhook', ['order_status' => $order->get_status()]);
 
-            if ($order->get_status() == 'processing' || $order->get_status() == 'completed') {
+            if ($order->get_status() === 'processing' || $order->get_status() === 'completed') {
                 $order->payment_complete();
                 $order->add_order_note(sprintf("%s payment completed with Order Id of '%s'", $this->method_title, $payment->orderId));
-                // wc_reduce_stock_levels($order_id);
             }
         } catch (Exception $e) {
             OrkestaPay_Logger::error('#webhook', ['error' => $e->getMessage()]);
 
             header('HTTP/1.1 500 Internal Server Error');
-            header('Content-type: application/json');
-            echo json_encode(['error' => true, 'message' => $e->getMessage()]);
+            header('Content-Type: application/json');
+            echo wp_json_encode(['message' => esc_html($e->getMessage())]);
             exit();
         }
 
         header('HTTP/1.1 200 OK');
-        header('Content-type: application/json');
-        echo json_encode(['success' => true]);
+        wp_send_json_success();
         exit();
     }
 
@@ -140,7 +148,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
                 'description' => __('Payment method title that the customer will see on your checkout.', 'orkestapay'),
             ],
             'description' => [
-                'title' => __('Description', 'woocommerce'),
+                'title' => __('Description', 'orkestapay'),
                 'type' => 'textarea',
                 'description' => __('Payment method description that the customer will see on your website.', 'orkestapay'),
                 'default' => __('Pay with your credit or debit card.', 'orkestapay'),
@@ -442,7 +450,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
 
         // Se actualiza el merchant_order_id de la orden de OrkestaPay
         $data = ['merchant_order_id' => $order->get_id()];
-        $updateOrkestaOrder = OrkestaPay_API::request($data, "$apiHost/v1/orders/$orkestaOrderId", 'PATCH');
+        OrkestaPay_API::request($data, "$apiHost/v1/orders/$orkestaOrderId", 'PATCH');
 
         update_post_meta($order->get_id(), '_orkestapay_order_id', $orkestaOrder->order_id);
 

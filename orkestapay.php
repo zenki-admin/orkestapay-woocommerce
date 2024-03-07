@@ -30,7 +30,7 @@ load_plugin_textdomain('orkestapay', false, dirname(plugin_basename(__FILE__)) .
  * This action hook registers our PHP class as a WooCommerce payment gateway
  */
 add_action('plugins_loaded', 'orkestapay_init_gateway_class', 0);
-add_action('woocommerce_order_refunded', 'orkesta_woocommerce_order_refunded', 10, 2);
+add_action('woocommerce_order_refunded', 'orkestapay_woocommerce_order_refunded', 10, 2);
 
 function orkestapay_init_gateway_class()
 {
@@ -74,12 +74,12 @@ function orkestapay_init_gateway_class()
  * @param type $refund_id
  *
  */
-function orkesta_woocommerce_order_refunded($order_id, $refund_id)
+function orkestapay_woocommerce_order_refunded($order_id, $refund_id)
 {
     $order = wc_get_order($order_id);
     $refund = wc_get_order($refund_id);
 
-    OrkestaPay_Logger::log('#orkesta_woocommerce_order_refunded', ['order_id' => $order_id, 'refund_id' => $refund_id, 'payment_method' => $order->get_payment_method()]);
+    OrkestaPay_Logger::log('#orkestapay_woocommerce_order_refunded', ['order_id' => $order_id, 'refund_id' => $refund_id, 'payment_method' => $order->get_payment_method()]);
 
     if ($order->get_payment_method() !== 'orkestapay') {
         return;
@@ -87,7 +87,7 @@ function orkesta_woocommerce_order_refunded($order_id, $refund_id)
 
     $orkestaOrderId = get_post_meta($order_id, '_orkesta_order_id', true);
     $orkestaPaymentId = get_post_meta($order_id, '_orkesta_payment_id', true);
-    OrkestaPay_Logger::log('#orkesta_woocommerce_order_refunded', ['orkesta_order_id' => $orkestaOrderId, 'orkesta_payment_id' => $orkestaPaymentId]);
+    OrkestaPay_Logger::log('#orkestapay_woocommerce_order_refunded', ['orkesta_order_id' => $orkestaOrderId, 'orkesta_payment_id' => $orkestaPaymentId]);
 
     if (OrkestaPay_Helper::is_null_or_empty_string($orkestaOrderId) || OrkestaPay_Helper::is_null_or_empty_string($orkestaPaymentId)) {
         return;
@@ -103,7 +103,7 @@ function orkesta_woocommerce_order_refunded($order_id, $refund_id)
 
         $order->add_order_note('Refund was requested.');
     } catch (Exception $e) {
-        OrkestaPay_Logger::error('#orkesta_woocommerce_order_refunded', ['error' => $e->getMessage()]);
+        OrkestaPay_Logger::error('#orkestapay_woocommerce_order_refunded', ['error' => $e->getMessage()]);
         $order->add_order_note('There was an error creating the refund: ' . $e->getMessage());
     }
 
