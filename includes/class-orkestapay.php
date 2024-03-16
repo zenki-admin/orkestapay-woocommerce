@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
-if (!class_exists('Svix')) {
+if (!class_exists('Orkestapay_Svix')) {
     require_once dirname(__DIR__) . '/lib/svix/init.php';
 }
 
@@ -67,8 +67,8 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
             exit();
         }
 
-        $input_data = (string) file_get_contents('php://input');
-        // Sanitizar la entrada de datos
+        // Obtener y sanitizar la entrada de datos del webhook
+        $input_data = WP_REST_Server::get_raw_data();
         $payload = sanitize_text_field($input_data);
 
         OrkestaPay_Logger::log('#webhook', ['payload' => $payload]);
@@ -82,7 +82,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
 
         try {
             $secret = $this->whsec;
-            $wh = new \Svix\SvixWebhook($secret);
+            $wh = new \Orkestapay_Svix\Orkestapay_Webhook($secret);
             $json = $wh->verify($payload, $svix_headers);
 
             if ($json->eventType !== 'order.update') {
@@ -365,9 +365,22 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
             $orkestaPayCartId = $this->getOrkestaPayCartId();
             $successUrl = "$successUrl?orkestapay_cart_id=$orkestaPayCartId";
             $cancelUrl = wc_get_checkout_url();
-            $request = $_POST;
 
-            $checkoutDTO = OrkestaPay_Helper::transform_data_4_checkout($request, $cart, $orkestaPayCartId, $successUrl, $cancelUrl);
+            $customer = [
+                'id' => $cart->get_customer()->get_id(),
+                'first_name' => wc_clean(wp_unslash($_POST['billing_first_name'])),
+                'last_name' => wc_clean(wp_unslash($_POST['billing_last_name'])),
+                'email' => wc_clean(wp_unslash($_POST['billing_email'])),
+                'phone' => isset($_POST['billing_phone']) ? wc_clean(wp_unslash($_POST['billing_phone'])) : '',
+                'billing_address_1' => wc_clean(wp_unslash($_POST['billing_address_1'])),
+                'billing_address_2' => wc_clean(wp_unslash($_POST['billing_address_2'])),
+                'billing_city' => wc_clean(wp_unslash($_POST['billing_city'])),
+                'billing_state' => wc_clean(wp_unslash($_POST['billing_state'])),
+                'billing_postcode' => wc_clean(wp_unslash($_POST['billing_postcode'])),
+                'billing_country' => wc_clean(wp_unslash($_POST['billing_country'])),
+            ];
+
+            $checkoutDTO = OrkestaPay_Helper::transform_data_4_checkout($customer, $cart, $orkestaPayCartId, $successUrl, $cancelUrl);
             $orkestaCheckout = OrkestaPay_API::request($checkoutDTO, "$apiHost/v1/checkouts");
 
             WC()->session->set('orkestapay_order_id', $orkestaCheckout->order->order_id);

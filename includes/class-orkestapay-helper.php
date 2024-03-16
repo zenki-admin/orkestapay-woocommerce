@@ -171,22 +171,9 @@ class OrkestaPay_Helper
      *
      * @return array
      */
-    public static function transform_data_4_checkout($request, $cart, $orketaPayCartId, $successUrl, $cancelUrl)
+    public static function transform_data_4_checkout($customer, $cart, $orketaPayCartId, $successUrl, $cancelUrl)
     {
         $products = [];
-        $customer = [
-            'id' => $cart->get_customer()->get_id(),
-            'first_name' => wc_clean(wp_unslash($request['billing_first_name'])),
-            'last_name' => wc_clean(wp_unslash($request['billing_last_name'])),
-            'email' => wc_clean(wp_unslash($request['billing_email'])),
-            'phone' => isset($request['billing_phone']) ? wc_clean(wp_unslash($request['billing_phone'])) : '',
-            'billing_address_1' => wc_clean(wp_unslash($request['billing_address_1'])),
-            'billing_address_2' => wc_clean(wp_unslash($request['billing_address_2'])),
-            'billing_city' => wc_clean(wp_unslash($request['billing_city'])),
-            'billing_state' => wc_clean(wp_unslash($request['billing_state'])),
-            'billing_postcode' => wc_clean(wp_unslash($request['billing_postcode'])),
-            'billing_country' => wc_clean(wp_unslash($request['billing_country'])),
-        ];
 
         foreach ($cart->get_cart() as $item) {
             $product = wc_get_product($item['product_id']);

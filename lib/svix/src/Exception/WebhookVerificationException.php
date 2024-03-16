@@ -1,6 +1,6 @@
 <?php
 
-namespace Svix\Exception;
+namespace Orkestapay_Svix\Exception;
 
 class SvixWebhookVerificationException extends \Exception
 {

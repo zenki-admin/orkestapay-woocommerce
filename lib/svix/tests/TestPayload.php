@@ -1,12 +1,12 @@
 <?php
 
-namespace Svix;
+namespace Orkestapay_Svix;
 
 final class TestPayload
 {
-    private const DEFAULT_MSG_ID = "msg_p5jXN8AQM9LWM0D4loKWxJek";
+    private const DEFAULT_MSG_ID = 'msg_p5jXN8AQM9LWM0D4loKWxJek';
     private const DEFAULT_PAYLOAD = '{"test": 2432232315}';
-    private const DEFAULT_SECRET = "MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw";
+    private const DEFAULT_SECRET = 'MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
 
     public $id;
     public $timestamp;
@@ -23,12 +23,12 @@ final class TestPayload
         $this->secret = self::DEFAULT_SECRET;
 
         $toSign = "{$this->id}.{$this->timestamp}.{$this->payload}";
-        $signature =  base64_encode(pack('H*', hash_hmac('sha256', $toSign, base64_decode($this->secret))));
+        $signature = base64_encode(pack('H*', hash_hmac('sha256', $toSign, base64_decode($this->secret))));
 
-        $this->header = array(
-            "svix-id" => $this->id,
-            "svix-signature" => "v1,{$signature}",
-            "svix-timestamp" => $this->timestamp,
-        );
+        $this->header = [
+            'svix-id' => $this->id,
+            'svix-signature' => "v1,{$signature}",
+            'svix-timestamp' => $this->timestamp,
+        ];
     }
 }

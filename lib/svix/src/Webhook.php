@@ -1,8 +1,8 @@
 <?php
 
-namespace Svix;
+namespace Orkestapay_Svix;
 
-class SvixWebhook
+class Orkestapay_Webhook
 {
     const SECRET_PREFIX = 'whsec_';
     const TOLERANCE = 5 * 60;
@@ -10,8 +10,8 @@ class SvixWebhook
 
     public function __construct($secret)
     {
-        if (substr($secret, 0, strlen(SvixWebhook::SECRET_PREFIX)) === SvixWebhook::SECRET_PREFIX) {
-            $secret = substr($secret, strlen(SvixWebhook::SECRET_PREFIX));
+        if (substr($secret, 0, strlen(Orkestapay_Webhook::SECRET_PREFIX)) === Orkestapay_Webhook::SECRET_PREFIX) {
+            $secret = substr($secret, strlen(Orkestapay_Webhook::SECRET_PREFIX));
         }
         $this->secret = base64_decode($secret);
     }
@@ -63,7 +63,7 @@ class SvixWebhook
     {
         $is_positive_integer = ctype_digit($timestamp);
         if (!$is_positive_integer) {
-            throw new Exception\WebhookSigningException('Invalid timestamp');
+            throw new Exception\SvixWebhookSigningException('Invalid timestamp');
         }
         $toSign = "{$msgId}.{$timestamp}.{$payload}";
         $hex_hash = hash_hmac('sha256', $toSign, $this->secret);
@@ -80,10 +80,10 @@ class SvixWebhook
             throw new Exception\SvixWebhookVerificationException('Invalid Signature Headers');
         }
 
-        if ($timestamp < $now - SvixWebhook::TOLERANCE) {
+        if ($timestamp < $now - Orkestapay_Webhook::TOLERANCE) {
             throw new Exception\SvixWebhookVerificationException('Message timestamp too old');
         }
-        if ($timestamp > $now + SvixWebhook::TOLERANCE) {
+        if ($timestamp > $now + Orkestapay_Webhook::TOLERANCE) {
             throw new Exception\SvixWebhookVerificationException('Message timestamp too new');
         }
         return $timestamp;

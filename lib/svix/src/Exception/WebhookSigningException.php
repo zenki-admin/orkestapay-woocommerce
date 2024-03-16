@@ -1,8 +1,8 @@
 <?php
 
-namespace Svix\Exception;
+namespace Orkestapay_Svix\Exception;
 
-class WebhookSigningException extends \Exception
+class SvixWebhookSigningException extends \Exception
 {
     public function __construct($message, $code = 0, \Throwable $previous = null)
     {

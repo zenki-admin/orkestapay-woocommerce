@@ -1,6 +1,6 @@
 <?php
 
-namespace Svix;
+namespace Orkestapay_Svix;
 
 final class WebhookTest extends \PHPUnit\Framework\TestCase
 {
@@ -10,7 +10,7 @@ final class WebhookTest extends \PHPUnit\Framework\TestCase
     {
         $testPayload = new TestPayload(time());
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $json = $wh->verify($testPayload->payload, $testPayload->header);
 
         $this->assertEquals($json['test'], 2432232315, 'did not return expected json');
@@ -26,7 +26,7 @@ final class WebhookTest extends \PHPUnit\Framework\TestCase
         ];
         $testPayload->header = $unbrandedHeaders;
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $json = $wh->verify($testPayload->payload, $testPayload->header);
 
         $this->assertEquals($json['test'], 2432232315, 'did not return expected json');
@@ -34,71 +34,71 @@ final class WebhookTest extends \PHPUnit\Framework\TestCase
 
     public function testInvalidSignatureThrowsException()
     {
-        $this->expectException(\Svix\Exception\SvixWebhookVerificationException::class);
+        $this->expectException(\Orkestapay_Svix\Exception\SvixWebhookVerificationException::class);
         $this->expectExceptionMessage('No matching signature found');
 
         $testPayload = new TestPayload(time());
         $testPayload->header['svix-signature'] = 'v1,dawfeoifkpqwoekfpqoekf';
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $wh->verify($testPayload->payload, $testPayload->header);
     }
 
     public function testMissingIdThrowsException()
     {
-        $this->expectException(\Svix\Exception\SvixWebhookVerificationException::class);
+        $this->expectException(\Orkestapay_Svix\Exception\SvixWebhookVerificationException::class);
         $this->expectExceptionMessage('Missing required headers');
 
         $testPayload = new TestPayload(time());
         unset($testPayload->header['svix-id']);
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $wh->verify($testPayload->payload, $testPayload->header);
     }
 
     public function testMissingTimestampThrowsException()
     {
-        $this->expectException(\Svix\Exception\SvixWebhookVerificationException::class);
+        $this->expectException(\Orkestapay_Svix\Exception\SvixWebhookVerificationException::class);
         $this->expectExceptionMessage('Missing required headers');
 
         $testPayload = new TestPayload(time());
         unset($testPayload->header['svix-timestamp']);
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $wh->verify($testPayload->payload, $testPayload->header);
     }
 
     public function testMissingSignatureThrowsException()
     {
-        $this->expectException(\Svix\Exception\SvixWebhookVerificationException::class);
+        $this->expectException(\Orkestapay_Svix\Exception\SvixWebhookVerificationException::class);
         $this->expectExceptionMessage('Missing required headers');
 
         $testPayload = new TestPayload(time());
         unset($testPayload->header['svix-signature']);
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $wh->verify($testPayload->payload, $testPayload->header);
     }
 
     public function testOldTimestampThrowsException()
     {
-        $this->expectException(\Svix\Exception\SvixWebhookVerificationException::class);
+        $this->expectException(\Orkestapay_Svix\Exception\SvixWebhookVerificationException::class);
         $this->expectExceptionMessage('Message timestamp too old');
 
         $testPayload = new TestPayload(time() - self::TOLERANCE - 1);
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $wh->verify($testPayload->payload, $testPayload->header);
     }
 
     public function testNewTimestampThrowsException()
     {
-        $this->expectException(\Svix\Exception\SvixWebhookVerificationException::class);
+        $this->expectException(\Orkestapay_Svix\Exception\SvixWebhookVerificationException::class);
         $this->expectExceptionMessage('Message timestamp too new');
 
         $testPayload = new TestPayload(time() + self::TOLERANCE + 1);
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $wh->verify($testPayload->payload, $testPayload->header);
     }
 
@@ -113,7 +113,7 @@ final class WebhookTest extends \PHPUnit\Framework\TestCase
         ];
         $testPayload->header['svix-signature'] = implode(' ', $sigs);
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $wh->verify($testPayload->payload, $testPayload->header);
     }
 
@@ -121,10 +121,10 @@ final class WebhookTest extends \PHPUnit\Framework\TestCase
     {
         $testPayload = new TestPayload(time());
 
-        $wh = new \Svix\SvixWebhook($testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($testPayload->secret);
         $wh->verify($testPayload->payload, $testPayload->header);
 
-        $wh = new \Svix\SvixWebhook('whsec_' . $testPayload->secret);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook('whsec_' . $testPayload->secret);
         $wh->verify($testPayload->payload, $testPayload->header);
     }
 
@@ -136,7 +136,7 @@ final class WebhookTest extends \PHPUnit\Framework\TestCase
         $payload = '{"test": 2432232314}';
         $expected = 'v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=';
 
-        $wh = new \Svix\SvixWebhook($key);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($key);
 
         $signature = $wh->sign($msgId, $timestamp, $payload);
         $this->assertEquals($signature, $expected, 'did not return expected signature');
@@ -144,42 +144,42 @@ final class WebhookTest extends \PHPUnit\Framework\TestCase
 
     public function testInvalidFloatTimestamp()
     {
-        $this->expectException(\Svix\Exception\WebhookSigningException::class);
+        $this->expectException(\Orkestapay_Svix\Exception\WebhookSigningException::class);
         $key = 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
         $msgId = 'msg_p5jXN8AQM9LWM0D4loKWxJek';
         $timestamp = '161426533.0';
         $payload = '{"test": 2432232314}';
         $expected = 'v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=';
 
-        $wh = new \Svix\SvixWebhook($key);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($key);
 
         $signature = $wh->sign($msgId, $timestamp, $payload);
     }
 
     public function testInvalidStringTimestamp()
     {
-        $this->expectException(\Svix\Exception\WebhookSigningException::class);
+        $this->expectException(\Orkestapay_Svix\Exception\WebhookSigningException::class);
         $key = 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
         $msgId = 'msg_p5jXN8AQM9LWM0D4loKWxJek';
         $timestamp = 'invalid timestamp';
         $payload = '{"test": 2432232314}';
         $expected = 'v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=';
 
-        $wh = new \Svix\SvixWebhook($key);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($key);
 
         $signature = $wh->sign($msgId, $timestamp, $payload);
     }
 
     public function testInvalidNegativeTimestamp()
     {
-        $this->expectException(\Svix\Exception\WebhookSigningException::class);
+        $this->expectException(\Orkestapay_Svix\Exception\WebhookSigningException::class);
         $key = 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
         $msgId = 'msg_p5jXN8AQM9LWM0D4loKWxJek';
         $timestamp = '-161426533';
         $payload = '{"test": 2432232314}';
         $expected = 'v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=';
 
-        $wh = new \Svix\SvixWebhook($key);
+        $wh = new \Orkestapay_Svix\Orkestapay_Webhook($key);
 
         $signature = $wh->sign($msgId, $timestamp, $payload);
     }
