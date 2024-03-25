@@ -460,10 +460,6 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         // Se registra la orden en WooCommerce
         $order->save();
 
-        // Se actualiza el merchant_order_id de la orden de OrkestaPay
-        $data = ['merchant_order_id' => $order->get_id()];
-        OrkestaPay_API::request($data, "$apiHost/v1/orders/$orkestaOrderId", 'PATCH');
-
         update_post_meta($order->get_id(), '_orkestapay_order_id', $orkestaOrder->order_id);
 
         // Remove cart
