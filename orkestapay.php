@@ -5,7 +5,7 @@
  * Description: Orchestrate multiple payment gateways for a frictionless, reliable, and secure checkout experience.
  * Author: Zenkipay
  * Author URI: https://zenkipay.io
- * Version: 0.2.0
+ * Version: 0.2.1
  * Requires at least: 5.8
  * Tested up to: 6.4.1
  * WC requires at least: 6.8

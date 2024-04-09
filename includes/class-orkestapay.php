@@ -20,7 +20,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
     protected $client_id;
     protected $client_secret;
     protected $whsec;
-    protected $plugin_version = '0.2.0';
+    protected $plugin_version = '0.2.1';
 
     public function __construct()
     {
