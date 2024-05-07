@@ -4,7 +4,7 @@ Tags: woocommerce, payments, ecommerce
 Requires at least: 5.8
 Tested up to: 6.4.1
 Requires PHP: 7.1
-Stable tag: 0.2.1
+Stable tag: 0.3.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -78,6 +78,10 @@ Follow the steps below to connect the plugin to your OrkestaPay account:
 2. Credit card payment form.
 
 == Changelog ==
+= 0.3.1 =
+* Validate and complete order status after OrkestaPay's checkout redirect
+= 0.3.0 =
+* Support for API endpoints changes
 = 0.2.1 =
 * Some assets were added
 = 0.2.0 =

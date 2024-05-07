@@ -174,7 +174,7 @@ class OrkestaPay_Helper
     public static function transform_data_4_checkout($customer, $cart, $orketaPayCartId, $successUrl, $cancelUrl)
     {
         $products = [];
-
+        $subtotal = 0;
         foreach ($cart->get_cart() as $item) {
             $product = wc_get_product($item['product_id']);
             $name = trim(preg_replace('/[[:^print:]]/', '', strip_tags($product->get_title())));
@@ -182,78 +182,82 @@ class OrkestaPay_Helper
             $thumbnailUrl = wp_get_attachment_image_url($product->get_image_id());
 
             $products[] = [
-                'id' => "{$product->get_id()}",
+                'product_id' => "{$product->get_id()}",
                 'name' => $name,
-                'description' => substr($desc, 0, 250),
+                'description' => strlen($desc) > 0 ? substr($desc, 0, 250) : null,
                 'quantity' => $item['quantity'],
-                'unit_price' => wc_get_price_excluding_tax($product),
+                'unit_price' => wc_get_price_including_tax($product),
                 'thumbnail_url' => $thumbnailUrl,
             ];
+
+            $subtotal += wc_get_price_including_tax($product) * $item['quantity'];
         }
 
         // Definir la fecha futura (en este ejemplo, 1 hora en el futuro)
         $expiresAt = strtotime('+1 hour') * 1000; // Convertir a milisegundos
+        $shipping = $cart->get_shipping_total() + $cart->get_shipping_tax();
 
         $checkoutData = [
-            'expires_at' => $expiresAt,
             'completed_redirect_url' => $successUrl,
             'canceled_redirect_url' => $cancelUrl,
+            'allow_save_payment_methods' => false,
             'order' => [
+                'expires_at' => $expiresAt,
                 'merchant_order_id' => $orketaPayCartId,
                 'currency' => get_woocommerce_currency(),
-                'subtotal_amount' => $cart->get_subtotal(),
-                'order_country' => $customer['billing_country'],
-                'additional_charges' => [
-                    'shipment' => $cart->get_shipping_total(),
-                    'taxes' => $cart->get_taxes_total(),
+                'country_code' => $customer['billing_country'],
+                // 'taxes' => $cart->get_total_tax(),
+                'discounts' => [['amount' => $cart->get_discount_total()]],
+                'shipping_details' => [
+                    'amount' => $shipping,
                 ],
-                'discounts' => [
-                    'promo_discount' => $cart->get_discount_total(),
-                ],
+                'subtotal_amount' => $subtotal,
                 'total_amount' => $cart->total,
                 'products' => $products,
                 'customer' => [
-                    'external_id' => $customer['id'],
-                    'name' => $customer['first_name'],
+                    'merchant_customer_id' => $customer['id'],
+                    'first_name' => $customer['first_name'],
                     'last_name' => $customer['last_name'],
                     'email' => $customer['email'],
-                    'phone' => $customer['phone'],
                 ],
                 'shipping_address' => [
                     'first_name' => $customer['first_name'],
                     'last_name' => $customer['last_name'],
                     'email' => $customer['email'],
-                    'address' => [
-                        'line_1' => $customer['billing_address_1'],
-                        'line_2' => $customer['billing_address_2'],
-                        'city' => $customer['billing_city'],
-                        'state' => $customer['billing_state'],
-                        'country' => $customer['billing_country'],
-                        'zip_code' => $customer['billing_postcode'],
-                    ],
+                    'line_1' => $customer['billing_address_1'],
+                    'line_2' => $customer['billing_address_2'],
+                    'city' => $customer['billing_city'],
+                    'state' => $customer['billing_state'],
+                    'country' => $customer['billing_country'],
+                    'zip_code' => $customer['billing_postcode'],
                 ],
                 'billing_address' => [
                     'first_name' => $customer['first_name'],
                     'last_name' => $customer['last_name'],
                     'email' => $customer['email'],
-                    'address' => [
-                        'line_1' => $customer['billing_address_1'],
-                        'line_2' => $customer['billing_address_2'],
-                        'city' => $customer['billing_city'],
-                        'state' => $customer['billing_state'],
-                        'country' => $customer['billing_country'],
-                        'zip_code' => $customer['billing_postcode'],
-                    ],
-                ],
-                'config' => [
-                    'use_3ds' => true,
+                    'line_1' => $customer['billing_address_1'],
+                    'line_2' => $customer['billing_address_2'],
+                    'city' => $customer['billing_city'],
+                    'state' => $customer['billing_state'],
+                    'country' => $customer['billing_country'],
+                    'zip_code' => $customer['billing_postcode'],
                 ],
             ],
         ];
 
         // Si no existe un ID, se remueve el índice
         if ($cart->get_customer()->get_id() === 0) {
-            unset($checkoutData['order']['customer']['external_id']);
+            unset($checkoutData['order']['customer']['merchant_customer_id']);
+        }
+
+        // Si no gastos de envío, se remueve el índice
+        if ($cart->get_shipping_total() <= 0) {
+            unset($checkoutData['order']['shipping_details']);
+        }
+
+        // Si no hay descuentos, se remueve el índice
+        if ($cart->get_discount_total() <= 0) {
+            unset($checkoutData['order']['discounts']);
         }
 
         return $checkoutData;
@@ -286,6 +290,12 @@ class OrkestaPay_Helper
     public static function get_signature_from_url($url)
     {
         $url_components = explode('&signature=', $url);
+        return $url_components[1];
+    }
+
+    public static function get_order_id_from_url($url)
+    {
+        $url_components = explode('order_id=', $url);
         return $url_components[1];
     }
 }

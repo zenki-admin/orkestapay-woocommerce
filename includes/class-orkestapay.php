@@ -10,17 +10,14 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
-if (!class_exists('Orkestapay_Svix')) {
-    require_once dirname(__DIR__) . '/lib/svix/init.php';
-}
-
 class OrkestaPay_Gateway extends WC_Payment_Gateway
 {
     protected $test_mode = true;
     protected $client_id;
     protected $client_secret;
-    protected $whsec;
-    protected $plugin_version = '0.2.1';
+    protected $plugin_version = '0.3.1';
+
+    const STATUS_COMPLETED = 'COMPLETED';
 
     public function __construct()
     {
@@ -40,7 +37,6 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         $this->test_mode = strcmp($this->settings['test_mode'], 'yes') == 0;
         $this->client_id = $this->settings['client_id'];
         $this->client_secret = $this->settings['client_secret'];
-        $this->whsec = $this->settings['whsec'];
 
         OrkestaPay_API::set_client_id($this->client_id);
         OrkestaPay_API::set_client_secret($this->client_secret);
@@ -51,74 +47,10 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
 
         add_action('wp_enqueue_scripts', [$this, 'payment_scripts']);
         add_action('admin_notices', [$this, 'admin_notices']);
-        add_action('woocommerce_api_' . strtolower(get_class($this)), [$this, 'webhookHandler']);
         add_action('woocommerce_api_orkesta_create_checkout', [$this, 'orkesta_create_checkout']);
         add_action('woocommerce_api_orkesta_return_url', [$this, 'orkesta_return_url']);
         // This action hook saves the settings
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
-    }
-
-    public function webhookHandler()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('HTTP/1.1 405 Method Not Allowed');
-            header('Content-Type: application/json');
-            echo wp_json_encode(['message' => esc_html('Method Not Allowed')]);
-            exit();
-        }
-
-        // Obtener y sanitizar la entrada de datos del webhook
-        $input_data = WP_REST_Server::get_raw_data();
-        $payload = sanitize_text_field($input_data);
-
-        OrkestaPay_Logger::log('#webhook', ['payload' => $payload]);
-
-        $headers = apache_request_headers();
-        $svix_headers = [];
-        foreach ($headers as $key => $value) {
-            $header = strtolower($key);
-            $svix_headers[$header] = $value;
-        }
-
-        try {
-            $secret = $this->whsec;
-            $wh = new \Orkestapay_Svix\Orkestapay_Webhook($secret);
-            $json = $wh->verify($payload, $svix_headers);
-
-            if ($json->eventType !== 'order.update') {
-                header('HTTP/1.1 400 Bad Request');
-                header('Content-Type: application/json');
-                echo wp_json_encode(['message' => esc_html('Event type is not order.update.')]);
-                exit();
-            }
-
-            $payment = $json->data;
-            if ($payment->status != 'COMPLETED') {
-                header('HTTP/1.1 400 Bad Request');
-                header('Content-Type: application/json');
-                echo wp_json_encode(['message' => esc_html('Transaction status is not completed.')]);
-                exit();
-            }
-
-            $order = new WC_Order($payment->merchantOrderId);
-            OrkestaPay_Logger::log('#webhook', ['order_status' => $order->get_status()]);
-
-            if ($order->get_status() === 'processing' || $order->get_status() === 'completed') {
-                $order->payment_complete();
-                $order->add_order_note(sprintf("%s payment completed with Order Id of '%s'", $this->method_title, $payment->orderId));
-            }
-        } catch (Exception $e) {
-            OrkestaPay_Logger::error('#webhook', ['error' => $e->getMessage()]);
-
-            header('HTTP/1.1 500 Internal Server Error');
-            header('Content-Type: application/json');
-            echo wp_json_encode(['message' => esc_html($e->getMessage())]);
-            exit();
-        }
-
-        header('HTTP/1.1 200 OK');
-        wp_send_json_success();
-        exit();
     }
 
     /**
@@ -173,17 +105,6 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
                     'role' => 'presentation',
                 ],
             ],
-            'whsec' => [
-                'title' => __('Webhook Signing Secret', 'orkestapay'),
-                'type' => 'password',
-                'default' => '',
-                'description' => __('This secret is required to verify payment notifications.', 'orkestapay'),
-                'custom_attributes' => [
-                    'autocomplete' => 'off',
-                    'aria-autocomplete' => 'none',
-                    'role' => 'presentation',
-                ],
-            ],
         ];
     }
 
@@ -227,20 +148,12 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         $post_data = $this->get_post_data();
         $client_id = $post_data['woocommerce_' . $this->id . '_client_id'];
         $client_secret = $post_data['woocommerce_' . $this->id . '_client_secret'];
-        $whsec = $post_data['woocommerce_' . $this->id . '_whsec'];
 
         $this->settings['title'] = $post_data['woocommerce_' . $this->id . '_title'];
         $this->settings['description'] = $post_data['woocommerce_' . $this->id . '_description'];
-        $this->settings['whsec'] = $whsec;
         $this->settings['test_mode'] = $post_data['woocommerce_' . $this->id . '_test_mode'] == '1' ? 'yes' : 'no';
         $this->settings['enabled'] = $post_data['woocommerce_' . $this->id . '_enabled'] == '1' ? 'yes' : 'no';
         $this->test_mode = $post_data['woocommerce_' . $this->id . '_test_mode'] == '1';
-
-        if ($whsec == '') {
-            $this->settings['enabled'] = 'no';
-            $settings->add_error('You need to enter all your credentials if you want to use this plugin.');
-            return;
-        }
 
         if (!$this->validateOrkestaCredentials($client_id, $client_secret)) {
             $this->settings['enabled'] = 'no';
@@ -297,12 +210,11 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
      */
     public function process_payment($order_id)
     {
-        OrkestaPay_Logger::log('#start_payment', ['datetime' => date('Y-m-d H:i:s')]);
         global $woocommerce;
 
         $order = wc_get_order($order_id);
 
-        // Mark as on-hold (we're awaiting the webhook's confirmation)
+        // Mark as on-hold (we're awaiting confirmation)
         $order->set_status('on-hold');
         $order->save();
 
@@ -357,13 +269,12 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         header('HTTP/1.1 200 OK');
 
         // $current_shipping_method = WC()->session->get('chosen_shipping_methods');
-        $successUrl = esc_url(WC()->api_request_url('orkesta_return_url'));
 
         try {
             $cart = WC()->cart;
             $apiHost = $this->getApiHost();
             $orkestaPayCartId = $this->getOrkestaPayCartId();
-            $successUrl = "$successUrl?orkestapay_cart_id=$orkestaPayCartId";
+            $successUrl = esc_url(WC()->api_request_url('orkesta_return_url'));
             $cancelUrl = wc_get_checkout_url();
 
             $customer = [
@@ -382,8 +293,6 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
 
             $checkoutDTO = OrkestaPay_Helper::transform_data_4_checkout($customer, $cart, $orkestaPayCartId, $successUrl, $cancelUrl);
             $orkestaCheckout = OrkestaPay_API::request($checkoutDTO, "$apiHost/v1/checkouts");
-
-            WC()->session->set('orkestapay_order_id', $orkestaCheckout->order->order_id);
 
             // Redirect to the thank you page
             wp_send_json_success([
@@ -409,15 +318,21 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
     public function orkesta_return_url()
     {
         $cart = WC()->cart;
-
         if ($cart->is_empty()) {
             wp_safe_redirect(wc_get_cart_url());
             exit();
         }
 
-        $orkestaOrderId = WC()->session->get('orkestapay_order_id');
+        $url_parts = parse_url(home_url());
+        $current_url = $url_parts['scheme'] . '://' . $url_parts['host'] . add_query_arg(null, null);
+
+        OrkestaPay_Logger::log('#orkesta_return_url', ['current_url' => $current_url]);
+
+        $orkestapayOrderId = OrkestaPay_Helper::get_order_id_from_url($current_url);
+        OrkestaPay_Logger::log('#orkesta_return_url', ['orkestapay_order_id' => $orkestapayOrderId]);
+
         $apiHost = $this->getApiHost();
-        $orkestaOrder = OrkestaPay_API::retrieve("$apiHost/v1/orders/$orkestaOrderId");
+        $orkestaOrder = OrkestaPay_API::retrieve("$apiHost/v1/orders/$orkestapayOrderId");
 
         $shipping_cost = $cart->get_shipping_total();
         $current_shipping_method = WC()->session->get('chosen_shipping_methods');
@@ -449,25 +364,21 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         $order->set_address($customer->get_billing(), 'billing');
         $order->set_address($customer->get_shipping(), 'shipping');
 
-        if ($orkestaOrder->status === 'COMPLETED') {
+        if ($orkestaOrder->status === self::STATUS_COMPLETED) {
             $order->payment_complete();
-            $order->add_order_note(sprintf("%s payment completed with Transaction Id of '%s'", $this->title, $orkestaOrder->order_id));
         } else {
-            // awaiting the webhook's confirmation
+            // awaiting  confirmation
             $order->set_status('on-hold');
+            $order->save();
         }
-
-        // Se registra la orden en WooCommerce
-        $order->save();
 
         update_post_meta($order->get_id(), '_orkestapay_order_id', $orkestaOrder->order_id);
 
         // Remove cart
         $cart->empty_cart();
 
-        // Remueve el valor de la sesión de orkestapay_cart_id y orkestapay_order_id
+        // Remueve el valor de la sesión de orkestapay_cart_id
         WC()->session->set('orkestapay_cart_id', null);
-        WC()->session->set('orkestapay_order_id', null);
 
         wp_safe_redirect($this->get_return_url($order));
         exit();
