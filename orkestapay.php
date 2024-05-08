@@ -5,7 +5,7 @@
  * Description: Orchestrate multiple payment gateways for a frictionless, reliable, and secure checkout experience.
  * Author: Zenkipay
  * Author URI: https://zenkipay.io
- * Version: 0.3.1
+ * Version: 0.3.2
  * Requires at least: 5.8
  * Tested up to: 6.4.1
  * WC requires at least: 6.8
@@ -20,8 +20,8 @@ if (!defined('ABSPATH')) {
 }
 
 define('ORKESTAPAY_WC_PLUGIN_FILE', __FILE__);
-define('ORKESTAPAY_API_URL', 'https://api.orkestapay.com');
-define('ORKESTAPAY_API_SAND_URL', 'https://api.sand.orkestapay.com');
+define('ORKESTAPAY_API_URL', 'https://api.dev.orkestapay.com');
+define('ORKESTAPAY_API_SAND_URL', 'https://api.dev.orkestapay.com');
 
 // Languages traslation
 load_plugin_textdomain('orkestapay', false, dirname(plugin_basename(__FILE__)) . '/languages/');

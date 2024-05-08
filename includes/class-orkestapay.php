@@ -15,7 +15,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
     protected $test_mode = true;
     protected $client_id;
     protected $client_secret;
-    protected $plugin_version = '0.3.1';
+    protected $plugin_version = '0.3.2';
 
     const STATUS_COMPLETED = 'COMPLETED';
 
@@ -323,12 +323,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
             exit();
         }
 
-        $url_parts = parse_url(home_url());
-        $current_url = $url_parts['scheme'] . '://' . $url_parts['host'] . add_query_arg(null, null);
-
-        OrkestaPay_Logger::log('#orkesta_return_url', ['current_url' => $current_url]);
-
-        $orkestapayOrderId = OrkestaPay_Helper::get_order_id_from_url($current_url);
+        $orkestapayOrderId = isset($_GET['order_id']) ? $_GET['order_id'] : $_GET['orderId'];
         OrkestaPay_Logger::log('#orkesta_return_url', ['orkestapay_order_id' => $orkestapayOrderId]);
 
         $apiHost = $this->getApiHost();
@@ -346,6 +341,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
 
         $customer = $cart->get_customer();
         $order = wc_create_order();
+        $order->set_customer_id(get_current_user_id());
 
         // Se agregan los productos al pedido
         foreach ($cart->get_cart() as $item) {
