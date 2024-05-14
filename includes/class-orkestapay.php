@@ -15,7 +15,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
     protected $test_mode = true;
     protected $client_id;
     protected $client_secret;
-    protected $plugin_version = '0.3.2';
+    protected $plugin_version = '0.3.3';
 
     const STATUS_COMPLETED = 'COMPLETED';
 
@@ -221,9 +221,6 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         // Remove cart
         $woocommerce->cart->empty_cart();
 
-        // Remueve el valor de la sesión de orkestapay_cart_id
-        WC()->session->set('orkestapay_cart_id', null);
-
         // Return thankyou redirect
         return [
             'result' => 'success',
@@ -373,24 +370,14 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
         // Remove cart
         $cart->empty_cart();
 
-        // Remueve el valor de la sesión de orkestapay_cart_id
-        WC()->session->set('orkestapay_cart_id', null);
-
         wp_safe_redirect($this->get_return_url($order));
         exit();
     }
 
     public function getOrkestaPayCartId()
     {
-        $orkestapay_cart_id = WC()->session->get('orkestapay_cart_id');
-
-        if (is_null($orkestapay_cart_id)) {
-            $bytes = random_bytes(16);
-            $orkestapay_cart_id = bin2hex($bytes);
-            WC()->session->set('orkestapay_cart_id', $orkestapay_cart_id);
-        }
-
-        return $orkestapay_cart_id;
+        $bytes = random_bytes(16);
+        return bin2hex($bytes);
     }
 
     private function getShippingLabel()
