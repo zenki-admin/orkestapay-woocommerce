@@ -15,7 +15,7 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
     protected $test_mode = true;
     protected $client_id;
     protected $client_secret;
-    protected $plugin_version = '0.3.3';
+    protected $plugin_version = '0.4.0';
 
     const STATUS_COMPLETED = 'COMPLETED';
 
@@ -365,7 +365,11 @@ class OrkestaPay_Gateway extends WC_Payment_Gateway
             $order->save();
         }
 
+        // Obtener el pago de OrkestaPay relacionado a la orden
+        $orkestaPayments = OrkestaPay_API::retrieve("$apiHost/v1/orders/$orkestapayOrderId/payments");
+
         update_post_meta($order->get_id(), '_orkestapay_order_id', $orkestaOrder->order_id);
+        update_post_meta($order->get_id(), '_orkestapay_payment_id', $orkestaPayments->content[0]->payment_id);
 
         // Remove cart
         $cart->empty_cart();

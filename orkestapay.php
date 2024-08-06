@@ -5,7 +5,7 @@
  * Description: Orchestrate multiple payment gateways for a frictionless, reliable, and secure checkout experience.
  * Author: Zenkipay
  * Author URI: https://zenkipay.io
- * Version: 0.3.3
+ * Version: 0.4.0
  * Requires at least: 5.8
  * Tested up to: 6.4.1
  * WC requires at least: 6.8
@@ -85,8 +85,8 @@ function orkestapay_woocommerce_order_refunded($order_id, $refund_id)
         return;
     }
 
-    $orkestaOrderId = get_post_meta($order_id, '_orkesta_order_id', true);
-    $orkestaPaymentId = get_post_meta($order_id, '_orkesta_payment_id', true);
+    $orkestaOrderId = get_post_meta($order_id, '_orkestapay_order_id', true);
+    $orkestaPaymentId = get_post_meta($order_id, '_orkestapay_payment_id', true);
     OrkestaPay_Logger::log('#orkestapay_woocommerce_order_refunded', ['orkesta_order_id' => $orkestaOrderId, 'orkesta_payment_id' => $orkestaPaymentId]);
 
     if (OrkestaPay_Helper::is_null_or_empty_string($orkestaOrderId) || OrkestaPay_Helper::is_null_or_empty_string($orkestaPaymentId)) {
@@ -99,7 +99,7 @@ function orkestapay_woocommerce_order_refunded($order_id, $refund_id)
         $orkestapay = new OrkestaPay_Gateway();
         $apiHost = $orkestapay->getApiHost();
 
-        OrkestaPay_API::request($refundData, "$apiHost/v1/orders/{$orkestaOrderId}/payments/{$orkestaPaymentId}/refund", 'PATCH');
+        OrkestaPay_API::request($refundData, "$apiHost/v1/payments/{$orkestaPaymentId}/refund", 'POST');
 
         $order->add_order_note('Refund was requested.');
     } catch (Exception $e) {
